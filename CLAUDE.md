@@ -12,9 +12,12 @@ npm run dev        # vite dev server
 npm run build       # tsc -b (project references) && vite build
 npm run preview     # serve the production build locally
 npm run lint       # oxlint (not eslint)
+npm run test       # vitest run (single run, not watch mode)
 ```
 
-There is no test suite in this repo yet.
+Run a single test file with `npx vitest run src/game/tick.test.ts`, or `npx vitest` (no `run`) for watch mode.
+
+Tests live alongside the code they cover (`src/game/*.test.ts`), using Vitest + `@testing-library/react` for hook tests, with a jsdom environment (`vitest.config.ts`). Coverage is currently limited to `src/game/` — the pure game logic and the `useGameLoop` hook. UI components (`App.tsx`) and the PWA/service-worker wiring (`pwaUpdate.ts`) aren't unit tested; verify those by running the app.
 
 ## Stack
 

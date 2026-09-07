@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createInitialState } from './initialState'
 import { clearSave, loadState, saveState } from './save'
 import { advanceTo } from './tick'
@@ -8,26 +8,26 @@ const TICK_MS = 250
 const AUTOSAVE_MS = 5000
 
 export function useGameLoop() {
-  const [state, setState] = useState<GameState>(() => advanceTo(loadState(), Date.now()))
-  const stateRef = useRef(state)
+  const [state, setState] = useState<GameState>(() =>
+    advanceTo(loadState(), Date.now()),
+  )
 
   useEffect(() => {
-    stateRef.current = state
-  }, [state])
+    const saveCurrentState = () => {
+      setState((prev) => {
+        saveState(prev)
+        return prev
+      })
+    }
 
-  useEffect(() => {
     const tickInterval = setInterval(() => {
       setState((prev) => advanceTo(prev, Date.now()))
     }, TICK_MS)
 
-    const autosaveInterval = setInterval(() => {
-      saveState(stateRef.current)
-    }, AUTOSAVE_MS)
+    const autosaveInterval = setInterval(saveCurrentState, AUTOSAVE_MS)
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        saveState(stateRef.current)
-      }
+      if (document.visibilityState === 'hidden') saveCurrentState()
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('pagehide', handleVisibilityChange)
@@ -37,7 +37,7 @@ export function useGameLoop() {
       clearInterval(autosaveInterval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('pagehide', handleVisibilityChange)
-      saveState(stateRef.current)
+      saveCurrentState()
     }
   }, [])
 

@@ -1,6 +1,6 @@
 # Deployment
 
-`.github/workflows/deploy.yml` builds and deploys `dist/` to GitHub Pages on every push to `main`, via `actions/upload-pages-artifact` + `actions/deploy-pages`.
+`.github/workflows/deploy.yml` lints, tests, builds, and deploys `dist/` to GitHub Pages on every push to `main`, via `actions/upload-pages-artifact` + `actions/deploy-pages`. `.github/workflows/ci.yml` runs the same lint/test/build checks on pull requests, so a broken PR is visible before merge rather than only after a push to `main` builds it.
 
 ## Base path
 

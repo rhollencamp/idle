@@ -8,7 +8,9 @@ const TICK_MS = 250
 const AUTOSAVE_MS = 5000
 
 export function useGameLoop() {
-  const [state, setState] = useState<GameState>(() => advanceTo(loadState(), Date.now()))
+  const [state, setState] = useState<GameState>(() =>
+    advanceTo(loadState(), Date.now()),
+  )
 
   useEffect(() => {
     const saveCurrentState = () => {

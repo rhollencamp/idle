@@ -11,6 +11,8 @@ npm install       # install deps
 npm run dev        # vite dev server
 npm run build       # tsc -b (project references) && vite build
 npm run lint       # oxlint (not eslint)
+npm run format      # prettier --write .
+npm run format:check # prettier --check . (what CI runs)
 npm run test       # vitest run (single run, not watch mode)
 npm run preview     # serve the production build locally
 ```
@@ -22,6 +24,7 @@ Run a single test file with `npx vitest run src/game/tick.test.ts`, or `npx vite
 - React 19 + TypeScript, built with Vite.
 - `vite-plugin-pwa` provides the web app manifest and generates the service worker.
 - Linting is `oxlint`, configured via `.oxlintrc.json` — there is no ESLint config in this repo.
+- Formatting is Prettier (`.prettierrc.json`: `semi: false`, `singleQuote: true`), not `oxfmt` — `oxfmt` is still pre-1.0 and formatting isn't a speed-sensitive path, so the mature tool won out over matching oxlint's toolchain.
 - `tsconfig.json` uses project references (`tsconfig.app.json` for `src/`, `tsconfig.node.json` for `vite.config.ts`), which is why `npm run build` runs `tsc -b` rather than plain `tsc`. Both reference configs have `strict` enabled.
 - Node version is pinned in `.nvmrc` (also `engines.node` in `package.json`); CI reads it via `node-version-file`, so bumping the Node version only requires updating `.nvmrc`.
 

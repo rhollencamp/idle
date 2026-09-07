@@ -42,7 +42,10 @@ describe('useGameLoop', () => {
 
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
 
-    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true })
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      configurable: true,
+    })
     act(() => {
       document.dispatchEvent(new Event('visibilitychange'))
     })

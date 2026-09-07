@@ -14,7 +14,10 @@ describe('loadState', () => {
   })
 
   it('round-trips a saved state', () => {
-    const state: GameState = { resources: { water: { amount: 12, perSecond: 2 } }, lastTick: 500 }
+    const state: GameState = {
+      resources: { water: { amount: 12, perSecond: 2 } },
+      lastTick: 500,
+    }
     saveState(state)
 
     expect(loadState()).toEqual(state)
@@ -35,7 +38,10 @@ describe('loadState', () => {
 
 describe('clearSave', () => {
   it('removes the saved state', () => {
-    saveState({ resources: { water: { amount: 5, perSecond: 1 } }, lastTick: 1 })
+    saveState({
+      resources: { water: { amount: 5, perSecond: 1 } },
+      lastTick: 1,
+    })
     clearSave()
 
     expect(loadState().resources.water.amount).toBe(0)

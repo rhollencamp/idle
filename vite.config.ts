@@ -5,6 +5,18 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/idle/',
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Bootstrap 5 is written against the legacy Sass module system: consuming
+        // individual partials (see src/styles/app.scss) requires `@import`, and
+        // its internals still use the deprecated global/colour functions. These
+        // are Bootstrap's to fix in a future major - silence them so real
+        // warnings from our own styles stay visible.
+        silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

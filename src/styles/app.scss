@@ -60,3 +60,15 @@ $progress-height: 0.5rem;
 .min-vh-100-svh {
   min-height: 100svh;
 }
+
+// iOS draws the installed PWA behind the status bar / Dynamic Island because
+// of viewport-fit=cover + apple-mobile-web-app-status-bar-style=black-translucent
+// in index.html. Pad the header/footer bars themselves (not the inner
+// .container-sm) so their background still spans full-bleed under the notch.
+.app-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+.app-footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}

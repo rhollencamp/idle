@@ -22,7 +22,7 @@ function App() {
 
   return (
     <div className="d-flex flex-column min-vh-100-svh">
-      <header className="bg-body-tertiary border-bottom">
+      <header className="app-header bg-body-tertiary border-bottom">
         <div className="container-sm py-3 text-center">
           <h1 className="h4 mb-1">Castaway Idle</h1>
           <p className="text-body-secondary small mb-0">
@@ -73,7 +73,7 @@ function App() {
         </div>
       </main>
 
-      <footer className="container-sm text-center pb-4">
+      <footer className="app-footer container-sm text-center pb-4">
         {confirmingReset ? (
           <div className="d-inline-flex align-items-center gap-2">
             <span className="text-body-secondary small">Wipe your save?</span>

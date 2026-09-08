@@ -10,7 +10,10 @@ function App() {
   const { state, resetGame } = useGameLoop()
   const [confirmingReset, setConfirmingReset] = useState(false)
 
-  const resources = Object.entries(state.resources) as [ResourceKey, (typeof state.resources)[ResourceKey]][]
+  const resources = Object.entries(state.resources) as [
+    ResourceKey,
+    (typeof state.resources)[ResourceKey],
+  ][]
 
   const handleReset = () => {
     resetGame()
@@ -22,7 +25,9 @@ function App() {
       <header className="bg-body-tertiary border-bottom">
         <div className="container-sm py-3 text-center">
           <h1 className="h4 mb-1">Castaway Idle</h1>
-          <p className="text-body-secondary small mb-0">Stranded on an island. Gather what you can.</p>
+          <p className="text-body-secondary small mb-0">
+            Stranded on an island. Gather what you can.
+          </p>
         </div>
       </header>
 
@@ -39,7 +44,9 @@ function App() {
                 <li key={key} className="list-group-item">
                   <div className="d-flex align-items-baseline justify-content-between">
                     <span className="fw-semibold">{RESOURCE_LABELS[key]}</span>
-                    <span className="font-monospace">{resource.amount.toFixed(1)}</span>
+                    <span className="font-monospace">
+                      {resource.amount.toFixed(1)}
+                    </span>
                   </div>
                   <div className="d-flex align-items-center gap-2 mt-2">
                     <div
@@ -50,7 +57,10 @@ function App() {
                       aria-valuemin={0}
                       aria-valuemax={100}
                     >
-                      <div className="progress-bar" style={{ width: `${progress}%` }} />
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${progress}%` }}
+                      />
                     </div>
                     <span className="badge text-bg-secondary font-monospace">
                       +{resource.perSecond.toFixed(1)}/s
@@ -67,7 +77,11 @@ function App() {
         {confirmingReset ? (
           <div className="d-inline-flex align-items-center gap-2">
             <span className="text-body-secondary small">Wipe your save?</span>
-            <button type="button" className="btn btn-sm btn-danger" onClick={handleReset}>
+            <button
+              type="button"
+              className="btn btn-sm btn-danger"
+              onClick={handleReset}
+            >
               Reset
             </button>
             <button

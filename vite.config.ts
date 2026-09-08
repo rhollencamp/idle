@@ -13,7 +13,12 @@ export default defineConfig({
         // its internals still use the deprecated global/colour functions. These
         // are Bootstrap's to fix in a future major - silence them so real
         // warnings from our own styles stay visible.
-        silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
+        silenceDeprecations: [
+          'import',
+          'global-builtin',
+          'color-functions',
+          'if-function',
+        ],
       },
     },
   },

@@ -50,3 +50,4 @@ Tests live alongside the code they cover (`src/game/*.test.ts`) — Vitest with 
 - `docs/implementation-plan.md` — the incremental steps for building it.
 - `docs/pwa.md` — service worker registration and the check-for-update-on-open flow.
 - `docs/deployment.md` — the GitHub Pages deploy pipeline and its constraints.
+- `docs/ui-library-comparison.md` — why the UI layer is Bootstrap and not MUI.

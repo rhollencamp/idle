@@ -24,6 +24,13 @@ export interface GameState {
   lifetimeFaith: number
   population: number
   /**
+   * Progress toward the next starvation death, in [0, 1]. Held on state
+   * rather than derived because it is a clock, not a level: it accumulates
+   * only while food need goes unmet and unwinds when the granary recovers,
+   * so a brief shortfall costs nothing.
+   */
+  starvation: number
+  /**
    * Seeds every random draw the sim makes. Fixed for the life of a save, so
    * the same absence always resolves the same way.
    */

@@ -1,5 +1,6 @@
 import { STEP_MS } from './tick'
-import type { ResourceState } from './types'
+import { FOOD_CAP, netFoodPerSecond } from './village'
+import type { GameState, ResourceState } from './types'
 
 /**
  * How far ahead of the last simulated step a projection may run.
@@ -28,9 +29,24 @@ export function projectAmount(
   lastTick: number,
   now: number,
 ): number {
-  const aheadMs = Math.min(Math.max(now - lastTick, 0), MAX_PROJECTION_MS)
+  return resource.amount + projectedGain(resource.perSecond, lastTick, now)
+}
 
-  return resource.amount + (resource.perSecond * aheadMs) / 1000
+/**
+ * Food, projected at the rate the granary actually moves at.
+ *
+ * Food is the one store that is spent as well as gathered, so projecting it
+ * from `perSecond` — the gross yield — would show a village filling its
+ * granary while it was in fact eating into it. The clamp mirrors what the
+ * sim would do with the same span: stores neither go negative nor exceed the
+ * granary, so the display never promises food that the next step deletes.
+ */
+export function projectFood(state: GameState, now: number): number {
+  const projected =
+    state.resources.food.amount +
+    projectedGain(netFoodPerSecond(state), state.lastTick, now)
+
+  return Math.min(Math.max(projected, 0), FOOD_CAP)
 }
 
 /** The same projection as a bare delta, for totals that share a rate. */

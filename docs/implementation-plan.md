@@ -83,6 +83,32 @@ The first real feedback loop.
 with too few foragers shrinks slowly and never hits zero fast enough to feel
 like a wipe. Tests cover growth, equilibrium, and the starvation curve.
 
+Landed in `village.ts` (constants and rate helpers) plus a `simulateVillage`
+pass inside `simulateStep`. Strawman numbers from the design doc were kept:
+`FOOD_PER_VILLAGER = 0.05/s`, `BIRTH_FOOD_COST = 50`, one starvation death per
+60s. Caps are `POPULATION_CAP = 10` and `FOOD_CAP = 200`, both fixed until
+buildings replace them in step 11. The starting village reaches its housing
+cap in about nine minutes and fills the granary by thirty, then holds — which
+is the whole of the loop until jobs and decrees give the surplus somewhere to
+go.
+
+Two rules were added that the sketch above did not call for, both to keep an
+absence from reading as a punishment:
+
+- **A birth needs the yield to cover the larger village**, not merely a full
+  granary. Growing on stock alone would push the village past what its
+  foragers can feed, starve it back, and leave it oscillating across its
+  carrying capacity, killing someone each lap.
+- **Starvation never takes the last villager.** Once yields derive from jobs,
+  an empty island can never gather again — a wipe with no way back, which the
+  design rules out.
+
+`starvation` joins `GameState` as a clock in [0, 1] rather than a level, and
+is defaulted in `migrate` rather than costing a `SAVE_VERSION` bump. Note that
+food's `perSecond` is still the _gross_ yield: `netFoodPerSecond` is what the
+UI shows and what `projectFood` interpolates, since projecting the gross rate
+would show a granary filling while it drained.
+
 ### Step 4: Jobs and Faith income
 
 - Add job assignment: forager / woodcutter / quarrier / worshipper, stored as

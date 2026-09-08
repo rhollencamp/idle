@@ -41,11 +41,16 @@ export function migrate(raw: unknown): GameState | null {
     return null
   }
 
-  // `seed` and `step` arrived after the first saves were written, so default
-  // them here rather than discarding an otherwise fine save. Seeding from
-  // `lastTick` keeps the derived seed stable across reloads.
+  // `seed`, `step`, and `starvation` all arrived after the first saves were
+  // written, so default them here rather than discarding an otherwise fine
+  // save. Seeding from `lastTick` keeps the derived seed stable across
+  // reloads; a save from before famines existed was, by definition, not in
+  // one.
   return {
     ...(state as GameState),
+    starvation: Number.isFinite(state.starvation)
+      ? (state.starvation as number)
+      : 0,
     seed: Number.isFinite(state.seed)
       ? (state.seed as number)
       : makeSeed(state.lastTick as number),

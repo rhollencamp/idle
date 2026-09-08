@@ -13,7 +13,15 @@ import {
   Title,
 } from '@mantine/core'
 import { useGameLoop } from './game/useGameLoop'
-import { projectAmount, projectedGain } from './game/projection'
+import { projectAmount, projectedGain, projectFood } from './game/projection'
+import {
+  BIRTH_FOOD_COST,
+  FOOD_CAP,
+  POPULATION_CAP,
+  canFeedAnother,
+  foodUpkeepPerSecond,
+  netFoodPerSecond,
+} from './game/village'
 import type { ResourceKey } from './game/types'
 import { useRenderClock } from './useRenderClock'
 import { theme } from './theme'
@@ -31,10 +39,24 @@ function App() {
   // steps so the numbers glide instead of stepping.
   const now = useRenderClock()
 
-  const resources = Object.entries(state.resources) as [
-    ResourceKey,
-    (typeof state.resources)[ResourceKey],
-  ][]
+  const gathered = (['wood', 'stone'] as const).map(
+    (key) => [key, state.resources[key]] as const,
+  )
+
+  const food = projectFood(state, now)
+  // Rounded before its sign is read, so a rate that displays as zero is not
+  // shown as a red "-0.00/s" on the strength of a float's last bit.
+  const netFood = Number(netFoodPerSecond(state).toFixed(2)) || 0
+  const starving = state.starvation > 0
+  const hasHousing = state.population < POPULATION_CAP
+  // Growing needs somewhere to put the newcomer and the food to keep feeding
+  // them, which is the same pair of questions the sim asks before a birth.
+  const canGrow = hasHousing && canFeedAnother(state)
+  // What the village is working toward: another villager when one is coming,
+  // and otherwise a fuller granary.
+  const villageProgress = canGrow
+    ? (Math.min(food, BIRTH_FOOD_COST) / BIRTH_FOOD_COST) * 100
+    : (food / FOOD_CAP) * 100
 
   const faith = projectAmount(state.faith, state.lastTick, now)
   const lifetimeFaith =
@@ -93,23 +115,77 @@ function App() {
             </Card>
 
             <Card withBorder padding={0}>
-              <Text fw={600} p="sm">
-                Village
-              </Text>
-              <Divider />
-              <Group justify="space-between" align="baseline" p="sm">
-                <Text>Villagers</Text>
-                <Text size="lg" ff="monospace">
-                  {state.population}
-                </Text>
+              <Group justify="space-between" align="center" p="sm">
+                <Text fw={600}>Village</Text>
+                {starving && (
+                  <Badge color="red" variant="light">
+                    Starving
+                  </Badge>
+                )}
               </Group>
+              <Divider />
+              <Stack gap="xs" p="sm">
+                <Group justify="space-between" align="baseline" wrap="nowrap">
+                  <Text>Villagers</Text>
+                  <Text size="lg" ff="monospace">
+                    {state.population} / {POPULATION_CAP}
+                  </Text>
+                </Group>
+                <Progress.Root>
+                  <Progress.Section
+                    value={villageProgress}
+                    color={starving ? 'red' : undefined}
+                    aria-label={
+                      canGrow
+                        ? 'Food stored toward the next villager'
+                        : 'Granary fullness'
+                    }
+                  />
+                </Progress.Root>
+                <Text size="sm" c="dimmed">
+                  {starving
+                    ? 'The granary is empty. Your people are dying.'
+                    : canGrow
+                      ? `${BIRTH_FOOD_COST} food feeds a newborn.`
+                      : hasHousing
+                        ? 'They gather too little to feed another mouth.'
+                        : 'Every hut is full.'}
+                </Text>
+                <Text size="sm" c="dimmed">
+                  They eat {foodUpkeepPerSecond(state.population).toFixed(2)}
+                  /s between them.
+                </Text>
+              </Stack>
             </Card>
 
             <Card withBorder padding={0}>
               <Text fw={600} p="sm">
                 Stores
               </Text>
-              {resources.map(([key, resource]) => {
+              <Divider />
+              <Stack gap="xs" p="sm">
+                <Group justify="space-between" align="baseline" wrap="nowrap">
+                  <Text fw={600}>Food</Text>
+                  <Text ff="monospace">
+                    {food.toFixed(1)} / {FOOD_CAP}
+                  </Text>
+                </Group>
+                <Group gap="xs" wrap="nowrap">
+                  <Progress.Root flex={1}>
+                    <Progress.Section
+                      value={(food / FOOD_CAP) * 100}
+                      color={netFood < 0 ? 'red' : undefined}
+                      aria-label="Food stored, as a share of the granary"
+                    />
+                  </Progress.Root>
+                  <Badge ff="monospace" color={netFood < 0 ? 'red' : undefined}>
+                    {netFood >= 0 ? '+' : ''}
+                    {netFood.toFixed(2)}/s
+                  </Badge>
+                </Group>
+              </Stack>
+
+              {gathered.map(([key, resource]) => {
                 const amount = projectAmount(resource, state.lastTick, now)
                 const progress = (amount % 1) * 100
 

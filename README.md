@@ -5,20 +5,23 @@ An idle survival game: stranded on an island, gather resources, unlock a skill t
 ## Stack
 
 - React + TypeScript + Vite
-- Bootstrap 5 (Sass) for UI and theming
+- Mantine 9 for UI and theming
 - `vite-plugin-pwa` for the web app manifest and service worker
 
 ## Styling
 
-Bootstrap owns the look of the app. `src/styles/app.scss` is the single entry
-point: it overrides Bootstrap's Sass variables (palette, typography, bar
-height) and imports only the parts of Bootstrap the game uses. Reach for
-Bootstrap utilities and components before writing custom CSS, and when you need
-a component that is not imported yet, add its partial to that file.
+Mantine owns the look of the app. `src/theme.ts` is the single entry point: the
+island palette, the dark-scheme ramp, typography and per-component defaults all
+live there. `src/styles/app.css` holds only what a theme object cannot express —
+the page background, the safe-area padding, and two app-level custom properties.
 
-Dark mode is Bootstrap's: a small inline script in `index.html` mirrors the
-device's colour-scheme preference onto `data-bs-theme` on `<html>` before first
-paint.
+Reach for Mantine components and style props before writing custom CSS. Every
+component's CSS ships in the one `@mantine/core/styles.css` import in
+`src/main.tsx`, so using a new component needs no build changes.
+
+Dark mode is Mantine's: a small inline script in `index.html` mirrors the
+device's colour-scheme preference onto `data-mantine-color-scheme` on `<html>`
+before first paint.
 
 ## Develop
 

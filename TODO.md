@@ -9,7 +9,5 @@ they ship.
       `registerType: 'autoUpdate'`, so a new service worker takes over and reloads
       the page on its own — which can yank the page out from under the player
       mid-tick. Switch to `registerType: 'prompt'` and surface the update as a
-      Bootstrap `.toast` ("New version available — Reload") so reloading is the
-      player's call. Needs the `toasts` partial added to `src/styles/app.scss`;
-      a static toast needs no Bootstrap JS, only the markup and a bit of React
-      state. Check that the save is flushed before the reload.
+      Mantine `Notification` ("New version available — Reload") so reloading is
+      the player's call. Check that the save is flushed before the reload.

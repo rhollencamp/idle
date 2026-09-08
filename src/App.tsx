@@ -1,8 +1,22 @@
 import { useState } from 'react'
+import {
+  Badge,
+  Button,
+  Card,
+  Container,
+  Divider,
+  Group,
+  MantineProvider,
+  Progress,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 import { useGameLoop } from './game/useGameLoop'
 import { projectAmount, projectedGain } from './game/projection'
 import type { ResourceKey } from './game/types'
 import { useRenderClock } from './useRenderClock'
+import { theme } from './theme'
 
 const RESOURCE_LABELS: Record<ResourceKey, string> = {
   food: 'Food',
@@ -37,121 +51,128 @@ function App() {
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100-svh">
-      <header className="app-header bg-body-tertiary border-bottom">
-        <div className="container-sm py-3 text-center">
-          <h1 className="h4 mb-1">Island God</h1>
-          <p className="text-body-secondary small mb-0">
-            A tribe lives on your island. They are waiting to hear from you.
-          </p>
-        </div>
-      </header>
+    <MantineProvider theme={theme} defaultColorScheme="auto">
+      <div className="app-shell">
+        <header className="app-header">
+          <Container size="sm" py="md" ta="center">
+            <Title order={1} size="h4" mb={4}>
+              Island God
+            </Title>
+            <Text size="sm" c="dimmed">
+              A tribe lives on your island. They are waiting to hear from you.
+            </Text>
+          </Container>
+        </header>
 
-      <main className="container-sm flex-grow-1 py-4 d-flex flex-column gap-3">
-        <div className="card shadow-sm">
-          <div className="card-header fw-semibold">Faith</div>
-          <div className="card-body">
-            <div className="d-flex align-items-baseline justify-content-between">
-              <span className="fs-4 font-monospace">{faith.toFixed(1)}</span>
-              <span className="badge text-bg-secondary font-monospace">
-                +{state.faith.perSecond.toFixed(1)}/s
-              </span>
-            </div>
-            <div
-              className="progress mt-2"
-              role="progressbar"
-              aria-label="Faith progress toward the next point"
-              aria-valuenow={Math.floor(faithProgress)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="progress-bar"
-                style={{ width: `${faithProgress}%` }}
-              />
-            </div>
-            <p className="text-body-secondary small mb-0 mt-2">
-              {lifetimeFaith.toFixed(0)} faith earned in all
-            </p>
-          </div>
-        </div>
+        <Container component="main" size="sm" py="lg" flex={1} w="100%">
+          <Stack gap="md">
+            <Card withBorder padding={0}>
+              <Text fw={600} p="sm">
+                Faith
+              </Text>
+              <Divider />
+              <Stack gap="xs" p="sm">
+                <Group justify="space-between" align="baseline" wrap="nowrap">
+                  <Text size="xl" ff="monospace">
+                    {faith.toFixed(1)}
+                  </Text>
+                  <Badge ff="monospace">
+                    +{state.faith.perSecond.toFixed(1)}/s
+                  </Badge>
+                </Group>
+                <Progress.Root>
+                  <Progress.Section
+                    value={faithProgress}
+                    aria-label="Faith progress toward the next point"
+                  />
+                </Progress.Root>
+                <Text size="sm" c="dimmed">
+                  {lifetimeFaith.toFixed(0)} faith earned in all
+                </Text>
+              </Stack>
+            </Card>
 
-        <div className="card shadow-sm">
-          <div className="card-header fw-semibold">Village</div>
-          <div className="card-body d-flex align-items-baseline justify-content-between">
-            <span>Villagers</span>
-            <span className="fs-5 font-monospace">{state.population}</span>
-          </div>
-        </div>
+            <Card withBorder padding={0}>
+              <Text fw={600} p="sm">
+                Village
+              </Text>
+              <Divider />
+              <Group justify="space-between" align="baseline" p="sm">
+                <Text>Villagers</Text>
+                <Text size="lg" ff="monospace">
+                  {state.population}
+                </Text>
+              </Group>
+            </Card>
 
-        <div className="card shadow-sm">
-          <div className="card-header fw-semibold">Stores</div>
-          <ul className="list-group list-group-flush">
-            {resources.map(([key, resource]) => {
-              const amount = projectAmount(resource, state.lastTick, now)
-              const progress = (amount % 1) * 100
+            <Card withBorder padding={0}>
+              <Text fw={600} p="sm">
+                Stores
+              </Text>
+              {resources.map(([key, resource]) => {
+                const amount = projectAmount(resource, state.lastTick, now)
+                const progress = (amount % 1) * 100
 
-              return (
-                <li key={key} className="list-group-item">
-                  <div className="d-flex align-items-baseline justify-content-between">
-                    <span className="fw-semibold">{RESOURCE_LABELS[key]}</span>
-                    <span className="font-monospace">{amount.toFixed(1)}</span>
+                return (
+                  <div key={key}>
+                    <Divider />
+                    <Stack gap="xs" p="sm">
+                      <Group
+                        justify="space-between"
+                        align="baseline"
+                        wrap="nowrap"
+                      >
+                        <Text fw={600}>{RESOURCE_LABELS[key]}</Text>
+                        <Text ff="monospace">{amount.toFixed(1)}</Text>
+                      </Group>
+                      <Group gap="xs" wrap="nowrap">
+                        <Progress.Root flex={1}>
+                          <Progress.Section
+                            value={progress}
+                            aria-label={`${RESOURCE_LABELS[key]} progress toward the next unit`}
+                          />
+                        </Progress.Root>
+                        <Badge ff="monospace">
+                          +{resource.perSecond.toFixed(1)}/s
+                        </Badge>
+                      </Group>
+                    </Stack>
                   </div>
-                  <div className="d-flex align-items-center gap-2 mt-2">
-                    <div
-                      className="progress flex-grow-1"
-                      role="progressbar"
-                      aria-label={`${RESOURCE_LABELS[key]} progress toward the next unit`}
-                      aria-valuenow={Math.floor(progress)}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      <div
-                        className="progress-bar"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <span className="badge text-bg-secondary font-monospace">
-                      +{resource.perSecond.toFixed(1)}/s
-                    </span>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      </main>
+                )
+              })}
+            </Card>
+          </Stack>
+        </Container>
 
-      <footer className="app-footer container-sm text-center pb-4">
-        {confirmingReset ? (
-          <div className="d-inline-flex align-items-center gap-2">
-            <span className="text-body-secondary small">Wipe your save?</span>
-            <button
-              type="button"
-              className="btn btn-sm btn-danger"
-              onClick={handleReset}
+        <footer className="app-footer">
+          {confirmingReset ? (
+            <Group justify="center" gap="xs">
+              <Text size="sm" c="dimmed">
+                Wipe your save?
+              </Text>
+              <Button size="compact-sm" color="red" onClick={handleReset}>
+                Reset
+              </Button>
+              <Button
+                size="compact-sm"
+                variant="default"
+                onClick={() => setConfirmingReset(false)}
+              >
+                Cancel
+              </Button>
+            </Group>
+          ) : (
+            <Button
+              size="compact-sm"
+              variant="default"
+              onClick={() => setConfirmingReset(true)}
             >
-              Reset
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-secondary"
-              onClick={() => setConfirmingReset(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary"
-            onClick={() => setConfirmingReset(true)}
-          >
-            Reset save
-          </button>
-        )}
-      </footer>
-    </div>
+              Reset save
+            </Button>
+          )}
+        </footer>
+      </div>
+    </MantineProvider>
   )
 }
 

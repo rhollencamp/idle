@@ -207,6 +207,25 @@ problem. Both are things Bootstrap does not have.
 
 ## Decision
 
+**Executed.** The app moved to Mantine 9 on the branch that carries this note:
+`bootstrap` and `sass-embedded` are gone, `src/styles/app.scss` became
+`src/theme.ts` plus a 30-line `src/styles/app.css`, and the Sass deprecation
+silencing came out of `vite.config.ts`. Notes from doing it for real:
+
+- The port was the two files predicted, plus the colour-scheme script in
+  `index.html`. The engine, the tests and `useGameLoop` were untouched.
+- Overriding `--mantine-color-body` is not how a dark theme gets reskinned —
+  cards, borders and muted text all come from `theme.colors.dark`, so the
+  island night palette had to be a full ten-shade ramp. Light-scheme body text
+  is `theme.black`.
+- Mantine defines its variables at `:root[data-mantine-color-scheme='light']`,
+  so an override in `app.css` must match that specificity or lose silently.
+- Progress bars keep their `role="progressbar"`, `aria-valuenow` and
+  `aria-label` through `Progress.Root` / `Progress.Section`; the compound form
+  is what puts the label on the element that carries the role.
+
+The reasoning that led here, unchanged:
+
 Switch, as its own change, before step 5. Do it whole — running two libraries
 means two resets, two palettes and two mental models.
 

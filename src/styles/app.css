@@ -1,0 +1,45 @@
+/* Mantine owns the look of the app; this file is only for what a theme object
+   cannot express. Keep it small — prefer theme tokens and component props. */
+
+/* Sun-bleached sand behind white cards. In light mode Mantine points both the
+   page and the card background at `white`, so the page has to be moved off it
+   here; the dark scheme needs no equivalent because its surfaces come from the
+   `dark` ramp in theme.ts. */
+/* Mantine defines its own scheme variables at :root[data-mantine-color-scheme],
+   so an override has to match that specificity to win. */
+:root[data-mantine-color-scheme='light'] {
+  --mantine-color-body: #f4f8fa;
+
+  /* App-level tokens, for the two surfaces Mantine has no variable for: the
+     header bar and the unfilled part of a resource bar. */
+  --app-header-bg: #eaf1f5;
+  --app-progress-track: #d5e1e8;
+}
+
+:root[data-mantine-color-scheme='dark'] {
+  --app-header-bg: var(--mantine-color-dark-6);
+  --app-progress-track: var(--mantine-color-dark-5);
+}
+
+/* The viewport unit that accounts for mobile browser chrome, which matters for
+   an installed portrait PWA. */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+/* iOS draws the installed PWA behind the status bar / Dynamic Island because
+   of viewport-fit=cover + apple-mobile-web-app-status-bar-style=black-translucent
+   in index.html. Pad the header/footer bars themselves (not their inner
+   containers) so their background still spans full-bleed under the notch. */
+.app-header {
+  padding-top: env(safe-area-inset-top);
+  background-color: var(--app-header-bg);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.app-footer {
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  text-align: center;
+}

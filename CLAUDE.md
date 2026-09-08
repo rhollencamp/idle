@@ -38,10 +38,12 @@ Tests live alongside the code they cover (`src/game/*.test.ts`) — Vitest with 
 
 ## Gotchas
 
-- **Save compatibility:** `save.ts` keys localStorage by a versioned `SAVE_KEY` (`castaway-idle:save:v1`), and `loadState` only does a shallow shape check before trusting saved data. Bump the version suffix when `GameState` changes incompatibly.
+- **Save compatibility:** `save.ts` keys localStorage by a versioned `SAVE_KEY` (`island-god:save:v2`, derived from `SAVE_VERSION` in `types.ts`), and `migrate()` is the single seam that turns an unknown saved blob into a `GameState` or `null`. Handle additive `GameState` changes inside `migrate` by defaulting the new field, so existing saves survive; bumping `SAVE_VERSION` discards every save and is reserved for reshapes that can't be repaired. `LEGACY_SAVE_KEYS` lists retired keys, cleared on load.
 - **Base path:** the app is served from a subpath, so `base` in `vite.config.ts` and the manifest's `start_url`/`scope` are all pinned to `/idle/` and have to change together.
 
 ## Further reading
 
+- `docs/mechanics.md` — the game design: core loop, currencies, prayers, and deferred ideas.
+- `docs/implementation-plan.md` — the incremental steps for building it.
 - `docs/pwa.md` — service worker registration and the check-for-update-on-open flow.
 - `docs/deployment.md` — the GitHub Pages deploy pipeline and its constraints.

@@ -14,5 +14,13 @@ export function advanceTo(state: GameState, now: number): GameState {
     }
   }
 
-  return { ...state, resources, lastTick: now }
+  const earnedFaith = state.faith.perSecond * elapsedSeconds
+
+  return {
+    ...state,
+    resources,
+    faith: { ...state.faith, amount: state.faith.amount + earnedFaith },
+    lifetimeFaith: state.lifetimeFaith + earnedFaith,
+    lastTick: now,
+  }
 }

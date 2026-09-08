@@ -31,15 +31,25 @@
     />
     <title>Island God</title>
     <script>
-      // Bootstrap owns theming; it switches on data-bs-theme rather than a
-      // media query. Set it inline, before first paint, to avoid a flash of
-      // the light theme on a dark device.
+      // Mantine switches on data-mantine-color-scheme rather than a media
+      // query. Set it inline, before first paint, to avoid a flash of the
+      // light theme on a dark device. This mirrors Mantine's own
+      // <ColorSchemeScript>, which cannot run early enough in a client-only
+      // app: the storage key and "auto" handling must stay in step with the
+      // defaultColorScheme passed to MantineProvider in src/App.tsx.
       ;(function () {
         var query = window.matchMedia('(prefers-color-scheme: dark)')
         var apply = function () {
+          var stored
+          try {
+            stored = window.localStorage.getItem('mantine-color-scheme-value')
+          } catch (e) {
+            stored = null
+          }
+          var scheme = stored === 'light' || stored === 'dark' ? stored : null
           document.documentElement.setAttribute(
-            'data-bs-theme',
-            query.matches ? 'dark' : 'light',
+            'data-mantine-color-scheme',
+            scheme || (query.matches ? 'dark' : 'light'),
           )
         }
         apply()

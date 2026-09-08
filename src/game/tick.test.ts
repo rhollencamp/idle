@@ -130,6 +130,18 @@ describe('advanceTo determinism', () => {
 })
 
 describe('advanceTo step budget', () => {
+  it('covers a multi-day absence without coarsening', () => {
+    const fourDaysMs = 4 * 24 * 60 * 60 * 1000
+    const state = makeState()
+
+    const next = advanceTo(state, state.lastTick + fourDaysMs)
+
+    // Every step is still the base width, so nothing about this span is
+    // resolved more coarsely than it would be watching it happen.
+    expect(next.step).toBe(fourDaysMs / STEP_MS)
+    expect(next.lastTick).toBe(state.lastTick + fourDaysMs)
+  })
+
   it('coarsens the step instead of running millions of them', () => {
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
     const state = makeState()
@@ -139,7 +151,10 @@ describe('advanceTo step budget', () => {
     const elapsedMs = performance.now() - startedAt
 
     expect(next.step).toBeLessThanOrEqual(MAX_STEPS_PER_ADVANCE)
-    expect(elapsedMs).toBeLessThan(500)
+    // A guard against per-step cost regressing, not a performance target:
+    // this is ~10ms on a dev machine, so tripping it means a step got an
+    // order of magnitude more expensive, not that a CI runner was busy.
+    expect(elapsedMs).toBeLessThan(150)
     // A coarser step still covers the whole absence, so nothing accrues slowly.
     expect(next.resources.food.amount).toBeCloseTo(thirtyDaysMs / 1000, 3)
   })

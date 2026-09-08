@@ -30,9 +30,11 @@ Run a single test file with `npx vitest run src/game/tick.test.ts`, or `npx vite
 
 ## Architecture
 
-`src/game/` is the game engine, kept independent of React: the state shape (`types.ts`), a pure `advanceTo(state, now)` tick (`tick.ts`), seeded randomness (`rng.ts`), and localStorage persistence (`save.ts`). `useGameLoop.ts` is the only React seam — it owns the tick interval, autosaves, and saves on `visibilitychange`/`pagehide`. `App.tsx` is currently its only consumer.
+`src/game/` is the game engine, kept independent of React: the state shape (`types.ts`), a pure `advanceTo(state, now)` tick (`tick.ts`), seeded randomness (`rng.ts`), display projection (`projection.ts`), and localStorage persistence (`save.ts`). `useGameLoop.ts` is the only React seam onto the engine — it owns the tick interval, autosaves, and saves on `visibilitychange`/`pagehide`. `App.tsx` is currently its only consumer.
 
 `advanceTo` is a fixed-step integrator, not a closed-form formula: it runs whole `STEP_MS` steps and advances `lastTick` by exactly the time it consumed, carrying the sub-step remainder to the next call. That is what makes the result depend on elapsed time alone rather than on how it was split into calls, which matters because population, food, and faith are a coupled loop. Offline progress is the same code path — a `now` far ahead of `lastTick` just runs more steps, up to `MAX_STEPS_PER_ADVANCE`, past which the step widens so a long absence stays bounded work. All sim rules go in `simulateStep`; the loop around it only decides how many steps and how wide.
+
+Simulation cadence and render cadence are deliberately separate. `STEP_MS` is chosen for the model — a second is already far finer than anything being simulated — while `useRenderClock` re-renders once an animation frame and `projection.ts` fills in the accrual earned since the last step, so the numbers glide. Reach for the projection when a display looks steppy; shrinking `STEP_MS` to smooth the screen just multiplies catch-up cost for no fidelity.
 
 Tests live alongside the code they cover (`src/game/*.test.ts`) — Vitest with a jsdom environment (`vitest.config.ts`), plus `@testing-library/react` for hook tests. `App.tsx` and the service-worker wiring aren't unit tested; verify those by running the app.
 

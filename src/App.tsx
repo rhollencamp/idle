@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useGameLoop } from './game/useGameLoop'
+import { projectAmount, projectedGain } from './game/projection'
 import type { ResourceKey } from './game/types'
+import { useRenderClock } from './useRenderClock'
 
 const RESOURCE_LABELS: Record<ResourceKey, string> = {
   food: 'Food',
@@ -11,15 +13,23 @@ const RESOURCE_LABELS: Record<ResourceKey, string> = {
 function App() {
   const { state, resetGame } = useGameLoop()
   const [confirmingReset, setConfirmingReset] = useState(false)
+  // The sim advances in whole seconds; this fills in the fraction between
+  // steps so the numbers glide instead of stepping.
+  const now = useRenderClock()
 
   const resources = Object.entries(state.resources) as [
     ResourceKey,
     (typeof state.resources)[ResourceKey],
   ][]
 
+  const faith = projectAmount(state.faith, state.lastTick, now)
+  const lifetimeFaith =
+    state.lifetimeFaith +
+    projectedGain(state.faith.perSecond, state.lastTick, now)
+
   // Fill the bar with progress toward the next whole unit, so an idle screen
   // still visibly ticks.
-  const faithProgress = (state.faith.amount % 1) * 100
+  const faithProgress = (faith % 1) * 100
 
   const handleReset = () => {
     resetGame()
@@ -42,9 +52,7 @@ function App() {
           <div className="card-header fw-semibold">Faith</div>
           <div className="card-body">
             <div className="d-flex align-items-baseline justify-content-between">
-              <span className="fs-4 font-monospace">
-                {state.faith.amount.toFixed(1)}
-              </span>
+              <span className="fs-4 font-monospace">{faith.toFixed(1)}</span>
               <span className="badge text-bg-secondary font-monospace">
                 +{state.faith.perSecond.toFixed(1)}/s
               </span>
@@ -63,7 +71,7 @@ function App() {
               />
             </div>
             <p className="text-body-secondary small mb-0 mt-2">
-              {state.lifetimeFaith.toFixed(0)} faith earned in all
+              {lifetimeFaith.toFixed(0)} faith earned in all
             </p>
           </div>
         </div>
@@ -80,15 +88,14 @@ function App() {
           <div className="card-header fw-semibold">Stores</div>
           <ul className="list-group list-group-flush">
             {resources.map(([key, resource]) => {
-              const progress = (resource.amount % 1) * 100
+              const amount = projectAmount(resource, state.lastTick, now)
+              const progress = (amount % 1) * 100
 
               return (
                 <li key={key} className="list-group-item">
                   <div className="d-flex align-items-baseline justify-content-between">
                     <span className="fw-semibold">{RESOURCE_LABELS[key]}</span>
-                    <span className="font-monospace">
-                      {resource.amount.toFixed(1)}
-                    </span>
+                    <span className="font-monospace">{amount.toFixed(1)}</span>
                   </div>
                   <div className="d-flex align-items-center gap-2 mt-2">
                     <div

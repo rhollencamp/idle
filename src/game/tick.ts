@@ -1,22 +1,31 @@
 import type { GameState, ResourceKey } from './types'
 
 /**
- * The sim's base resolution. Matches the UI's tick so the screen still moves
- * smoothly, and is small enough that a rate change lands almost immediately.
+ * The sim's base resolution.
+ *
+ * One second is far finer than anything being modelled — the fastest process
+ * in the design is starvation at one death a minute — so a smaller step buys
+ * no fidelity, only cost. Screen smoothness is not this constant's job: the
+ * UI interpolates between steps (`projection.ts`), which is what lets the
+ * step be chosen for the simulation rather than for the eye.
  */
-export const STEP_MS = 250
+export const STEP_MS = 1000
 
 /**
  * Ceiling on the steps one `advanceTo` call will run. Past it the step is
- * coarsened so a two-week absence resolves in bounded work instead of
- * millions of iterations. At the base step this covers roughly seven hours
- * away, so ordinary sessions and short absences never coarsen.
+ * coarsened, so an absence of any length resolves in bounded work rather than
+ * millions of iterations — a year away costs the same as four days.
  *
- * Coarsening trades fidelity for time: a month away is simulated in ~26s
- * buckets, which will read slightly differently from the same month watched
- * live once the loop is nonlinear. That is the intended bargain.
+ * At the base step this covers four days at full resolution, which measures
+ * around 10ms today and well under a frame's worth of budget even with the
+ * sim several times fatter than it is now. Beyond four days the bucket widens
+ * and the result drifts from what the same span watched live would produce,
+ * once the loop is nonlinear. That only matters near a threshold — a village
+ * at equilibrium resolves the same at any bucket width — so the number to
+ * revisit this against is the measured coarse-vs-fine divergence, not the
+ * clock.
  */
-export const MAX_STEPS_PER_ADVANCE = 100_000
+export const MAX_STEPS_PER_ADVANCE = 345_600
 
 const RESOURCE_KEYS: readonly ResourceKey[] = ['food', 'wood', 'stone']
 

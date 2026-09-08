@@ -56,6 +56,14 @@ coupled feedback loop, so it has to become an integrator.
 3600 one-second calls all produce the same state; a 30-day absence completes
 in well under a second.
 
+Landed with `STEP_MS = 1000` and `MAX_STEPS_PER_ADVANCE = 345_600` — four days
+at full resolution, measured at ~10ms, with anything longer resolving in wider
+buckets at the same cost. The 60s strawman above was dropped: the step is the
+UI's resolution too unless the display interpolates, which it now does
+(`projection.ts`), leaving `STEP_MS` free to be chosen for the model alone.
+Revisit the budget against measured coarse-vs-fine divergence once step 3
+makes the loop nonlinear, rather than against a target absence length.
+
 _This is the step most likely to be fiddly. Everything after it is additive._
 
 ---

@@ -23,6 +23,19 @@ export interface GameState {
    */
   lifetimeFaith: number
   population: number
-  /** epoch ms of the last tick this state was advanced to */
+  /**
+   * Seeds every random draw the sim makes. Fixed for the life of a save, so
+   * the same absence always resolves the same way.
+   */
+  seed: number
+  /**
+   * How many fixed steps have been simulated. Combined with `seed` it indexes
+   * the PRNG, which is why it is stored rather than derived from elapsed time.
+   */
+  step: number
+  /**
+   * epoch ms of the last simulated step boundary. Lags `now` by up to one
+   * step: the leftover is carried rather than dropped, so no time is lost.
+   */
   lastTick: number
 }

@@ -10,9 +10,12 @@ record MUI is about +32 kB gzipped over the current build, which for an
 installed PWA is a first-visit and update-download cost, not a per-session
 one.
 
-**Recommendation: switch to MUI, and switch now.** Every component phases 2–4
-need is in the free tier, several of them are ones Bootstrap simply does not
-have, and the port costs two files today and more every step from here.
+**Recommendation: switch off Bootstrap now, to Mantine.** The port costs two
+files today and more at every step from here, and Bootstrap has no answer for
+the two controls the game is about to need — a real slider (step 5) and a
+determinate cooldown ring (step 7). MUI is the safe, obvious replacement and
+would be fine; Mantine fits this particular game better, for the reasons in
+_The rest of the field_ below.
 
 Everything below was measured by porting `App.tsx` to MUI 9.4.0 and building
 both, not from memory.
@@ -120,6 +123,73 @@ determinate `CircularProgress`, `Timeline`, `Rating`, `Skeleton`, `Stepper`,
 `Autocomplete`, `Avatar` and the charts have no Bootstrap counterpart and
 would each be hand-rolled or pulled from a separate package.
 
+## The rest of the field
+
+Bootstrap and MUI are the incumbents, not the shortlist. Versions and licences
+below were read from the npm registry in September 2026, not from memory.
+
+### Mantine 9.6.0 (MIT) — the strongest alternative
+
+Mantine is the one that beats both on this game's specific shapes. Its
+component list reads like it was written for an idle game:
+
+| Mantine component                      | What it is for here                                    |
+| -------------------------------------- | ------------------------------------------------------ |
+| `RingProgress`, `SemiCircleProgress`   | Miracle cooldown rings (step 7)                        |
+| `RollingNumber`                        | Counters that tick — the core visual of the app        |
+| `NumberFormatter`                      | Big-number formatting, which every idle game needs     |
+| `Slider`, `AngleSlider`                | Labor split and offering share (step 5)                |
+| `Timeline`                             | The Chronicle (step 10) — stable, not in a lab package |
+| `SegmentedControl`                     | Breeding policy (step 5)                               |
+| `Notification`, `Modal`, `Tooltip`     | Prayers and the update prompt (step 8, TODO)           |
+| `Tree`, `Stepper`, `Rating`, `Spoiler` | Boon shops, ascension, chronicle collapsing            |
+
+Practical notes from porting `App.tsx` to it:
+
+- **It typechecked on the first attempt**, against MUI's three fixes
+  (system props, `slotProps`, `Box` overloads). Styling is `style`/props plus
+  CSS modules.
+- **Density matches Bootstrap's.** The ported screen fits the 390×844 portrait
+  viewport, where MUI's defaults overflow it.
+- **No CSS-in-JS runtime.** Since v7 Mantine is CSS modules and CSS custom
+  properties, so theming is `createTheme` for tokens and plain CSS for the
+  rest — closer to how `app.scss` already works.
+- **No paid tier at all.** Everything, including charts (`@mantine/charts`)
+  and the date pickers, is MIT; there is no Pro package to bump into.
+- Gotcha: `Badge` uppercases its text by default (`+0.5/s` renders `+0.5/S`).
+
+### Worth knowing about, probably not for this
+
+- **shadcn/ui 4.21 + Tailwind 4 + Radix (MIT).** You copy component source
+  into the repo and own it. The highest ceiling if the game eventually wants a
+  hand-painted look, and zero runtime — but it adds Tailwind to the build,
+  makes every component ours to maintain, and ships no timeline, no charts,
+  and no cooldown ring. Most work up front, most freedom later.
+- **Base UI 1.0.0-rc.0 (MIT).** Unstyled primitives from the MUI and Radix
+  people. Still a release candidate, and it means styling everything by hand.
+- **Chakra UI 3.37 (MIT).** v3 is a ground-up rewrite on Ark UI and Panda CSS.
+  Perfectly good, but a bigger conceptual stack than Mantine for no gain here.
+- **Radix Themes 3.3, Ark UI 5.39 (MIT), React Aria Components 1.21
+  (Apache-2.0).** Primitive/headless layers. React Aria is the accessibility
+  benchmark, but all three mean writing the visual layer ourselves.
+- **DaisyUI 5.7 (MIT).** Bootstrap's spirit on Tailwind: class-based themes,
+  no JS behaviour — so the slider and cooldown ring stay hand-rolled.
+- **Ant Design 6.6, Fluent UI 9.74 (MIT).** Enterprise admin aesthetics and
+  weight. Wrong shape for a one-thumb phone game.
+- **PrimeReact — check the licence before considering it.** v10.9.9 was MIT;
+  **v11 moved to a dual community/commercial licence** requiring a licence key
+  with annual eligibility renewal. The community tier is free for small
+  teams and individuals, but it is no longer an MIT dependency. Given the "no
+  paid licence" constraint, this is the one to avoid on principle.
+
+### Not a real category: game UI kits
+
+Nothing here is a game UI library, and the React ones that exist are aimed at
+canvas/WebGL scenes rather than a DOM-based idle screen. Whatever we pick is a
+neutral chassis that a custom skin goes on top of. That argues for a library
+whose components are easy to override with plain CSS — which is Mantine or
+shadcn, and not MUI.
+
 ## The case for staying, honestly stated
 
 - It works, it is themed, dark mode is flash-free, and the safe-area handling
@@ -137,20 +207,34 @@ problem. Both are things Bootstrap does not have.
 
 ## Decision
 
-Switch to MUI, as its own change, before step 5. Do it whole — running both
+Switch, as its own change, before step 5. Do it whole — running two libraries
 means two resets, two palettes and two mental models.
 
-The port should:
+**Mantine first choice, MUI second, Bootstrap only if we do nothing.** All
+three were ported and screenshotted; the separation is narrow and mostly comes
+down to fit:
 
-1. Rebuild `src/styles/app.scss` as a `createTheme` with per-scheme palettes
-   and `cssVariables: { colorSchemeSelector: 'media' }`, so dark mode stays
-   flash-free and the `data-bs-theme` script comes out of `index.html`.
-2. Tighten default density deliberately (theme `spacing`, `size="small"`
-   defaults) rather than accepting Material's, so the whole village still
-   fits one portrait screen.
-3. Keep the safe-area insets as `sx` on the header/footer `Box`es.
-4. Drop `bootstrap`, `sass-embedded`, and the four silenced Sass
-   deprecations in `vite.config.ts` in the same commit.
+|                                           | Bootstrap         | MUI                     | Mantine                            |
+| ----------------------------------------- | ----------------- | ----------------------- | ---------------------------------- |
+| Slider for the labor split                | native range only | yes                     | yes                                |
+| Determinate cooldown ring                 | hand-rolled       | `CircularProgress`      | `RingProgress`                     |
+| Chronicle timeline                        | hand-rolled       | `@mui/lab` (beta)       | stable                             |
+| Ticking-number helpers                    | none              | none                    | `RollingNumber`, `NumberFormatter` |
+| Fits portrait viewport at default density | yes               | no, needs tuning        | yes                                |
+| Port typechecked first try                | n/a               | no, three fixes         | yes                                |
+| Paid tier to bump into                    | none              | X Pro (nothing we need) | none                               |
 
-If we do not switch, adopt `react-bootstrap` at step 7 instead of hand-rolling
-modals and tooltips, and budget for a custom slider and cooldown ring.
+Whichever we pick, the port should:
+
+1. Replace `src/styles/app.scss` with the library's theme object, keeping the
+   island palette and the 18px / 1.45 type scale.
+2. Keep dark mode flash-free — Mantine's `defaultColorScheme="auto"` or MUI's
+   `cssVariables: { colorSchemeSelector: 'media' }` — and drop the
+   `data-bs-theme` script from `index.html`.
+3. Keep the safe-area insets from #7 on the header and footer.
+4. Drop `bootstrap` and `sass-embedded`, and remove the four silenced Sass
+   deprecations from `vite.config.ts`, in the same commit.
+
+If we decide to stay on Bootstrap after all, adopt `react-bootstrap` at step 7
+rather than hand-rolling modals and tooltips, and budget for a custom slider
+and cooldown ring.

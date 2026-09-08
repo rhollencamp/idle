@@ -64,6 +64,14 @@ export const theme = createTheme({
     Progress: {
       styles: { root: { backgroundColor: 'var(--app-progress-track)' } },
     },
+    // The fill is already redrawn every animation frame from the projection,
+    // so Mantine's default width transition has no gap to smooth: it only
+    // damps each update, leaving the bar trailing the number beside it. Worse,
+    // an `ease` transition restarted every frame never gets past the slow head
+    // of its own curve, so the bar creeps while the figure climbs. Note the
+    // key: `Progress.Root` reads its props under `ProgressRoot`, and only its
+    // styles resolve against `Progress` above.
+    ProgressRoot: { defaultProps: { transitionDuration: 0 } },
     // Rates read as data, not as shouting.
     Badge: { defaultProps: { variant: 'light', tt: 'none' } },
   },

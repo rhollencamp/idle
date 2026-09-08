@@ -1,19 +1,56 @@
 import { createInitialState } from './initialState'
-import type { GameState } from './types'
+import { SAVE_VERSION, type GameState, type ResourceState } from './types'
 
-const SAVE_KEY = 'castaway-idle:save:v1'
+const SAVE_KEY = `island-god:save:v${SAVE_VERSION}`
+
+/** Keys from earlier, incompatible shapes. Cleared on load so they don't linger. */
+const LEGACY_SAVE_KEYS = ['castaway-idle:save:v1']
+
+function isResourceState(value: unknown): value is ResourceState {
+  if (typeof value !== 'object' || value === null) return false
+  const resource = value as Partial<ResourceState>
+  return Number.isFinite(resource.amount) && Number.isFinite(resource.perSecond)
+}
+
+/**
+ * Turns an unknown saved blob into a usable `GameState`, or `null` when it
+ * cannot be salvaged.
+ *
+ * This is the seam for save compatibility: an additive change to `GameState`
+ * should be handled here by filling in a default for the new field, so old
+ * saves survive. Reserve a `SAVE_VERSION` bump for reshapes that genuinely
+ * cannot be repaired — bumping discards every existing save.
+ */
+export function migrate(raw: unknown): GameState | null {
+  if (typeof raw !== 'object' || raw === null) return null
+
+  const state = raw as Partial<GameState>
+  if (state.version !== SAVE_VERSION) return null
+
+  if (
+    !state.resources ||
+    !isResourceState(state.resources.food) ||
+    !isResourceState(state.resources.wood) ||
+    !isResourceState(state.resources.stone) ||
+    !isResourceState(state.faith) ||
+    !Number.isFinite(state.lifetimeFaith) ||
+    !Number.isFinite(state.population) ||
+    !Number.isFinite(state.lastTick)
+  ) {
+    return null
+  }
+
+  return state as GameState
+}
 
 export function loadState(): GameState {
+  for (const key of LEGACY_SAVE_KEYS) localStorage.removeItem(key)
+
   try {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return createInitialState()
 
-    const parsed = JSON.parse(raw) as Partial<GameState>
-    if (!parsed.resources || typeof parsed.lastTick !== 'number') {
-      return createInitialState()
-    }
-
-    return parsed as GameState
+    return migrate(JSON.parse(raw)) ?? createInitialState()
   } catch {
     return createInitialState()
   }

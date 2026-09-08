@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadState } from './save'
 import { useGameLoop } from './useGameLoop'
 
-const SAVE_KEY = 'castaway-idle:save:v1'
+const SAVE_KEY = 'island-god:save:v2'
 
 beforeEach(() => {
   localStorage.clear()
@@ -22,7 +22,7 @@ describe('useGameLoop', () => {
       vi.advanceTimersByTime(1000)
     })
 
-    expect(result.current.state.resources.water.amount).toBeCloseTo(0.5, 5)
+    expect(result.current.state.resources.food.amount).toBeCloseTo(20.5, 5)
   })
 
   it('autosaves on an interval', () => {
@@ -34,7 +34,7 @@ describe('useGameLoop', () => {
       vi.advanceTimersByTime(5000)
     })
 
-    expect(loadState().resources.water.amount).toBeGreaterThan(0)
+    expect(loadState().lifetimeFaith).toBeGreaterThan(0)
   })
 
   it('saves immediately when the tab is hidden', () => {
@@ -59,13 +59,13 @@ describe('useGameLoop', () => {
     act(() => {
       vi.advanceTimersByTime(5000)
     })
-    expect(loadState().resources.water.amount).toBeGreaterThan(0)
+    expect(loadState().lifetimeFaith).toBeGreaterThan(0)
 
     act(() => {
       result.current.resetGame()
     })
 
-    expect(result.current.state.resources.water.amount).toBe(0)
+    expect(result.current.state.lifetimeFaith).toBe(0)
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
   })
 })

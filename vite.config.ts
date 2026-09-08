@@ -28,9 +28,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Castaway Idle',
-        short_name: 'Castaway',
-        description: 'Stranded on an island idle survival game.',
+        name: 'Island God',
+        short_name: 'Island God',
+        description: 'An idle game where you are the god of an island tribe.',
         theme_color: '#0e5c82',
         background_color: '#7ed0e8',
         display: 'standalone',

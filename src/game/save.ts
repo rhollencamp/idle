@@ -1,4 +1,5 @@
 import { createInitialState } from './initialState'
+import { makeSeed } from './rng'
 import { SAVE_VERSION, type GameState, type ResourceState } from './types'
 
 const SAVE_KEY = `island-god:save:v${SAVE_VERSION}`
@@ -40,7 +41,16 @@ export function migrate(raw: unknown): GameState | null {
     return null
   }
 
-  return state as GameState
+  // `seed` and `step` arrived after the first saves were written, so default
+  // them here rather than discarding an otherwise fine save. Seeding from
+  // `lastTick` keeps the derived seed stable across reloads.
+  return {
+    ...(state as GameState),
+    seed: Number.isFinite(state.seed)
+      ? (state.seed as number)
+      : makeSeed(state.lastTick as number),
+    step: Number.isFinite(state.step) ? (state.step as number) : 0,
+  }
 }
 
 export function loadState(): GameState {

@@ -45,6 +45,27 @@ describe('migrate', () => {
     expect(migrate({ ...makeState(), resources: {} })).toBeNull()
   })
 
+  it('fills in seed and step for a save written before they existed', () => {
+    const { seed: _seed, step: _step, ...preSeed } = makeState()
+
+    const migrated = migrate(preSeed)
+
+    expect(migrated).not.toBeNull()
+    expect(Number.isFinite(migrated?.seed)).toBe(true)
+    expect(migrated?.step).toBe(0)
+    // Derived from lastTick, so reloading the same save keeps the same seed.
+    expect(migrate(preSeed)?.seed).toBe(migrated?.seed)
+  })
+
+  it('keeps a stored seed and step rather than resetting them', () => {
+    const state = makeState({ seed: 777, step: 42 })
+
+    const migrated = migrate(JSON.parse(JSON.stringify(state)))
+
+    expect(migrated?.seed).toBe(777)
+    expect(migrated?.step).toBe(42)
+  })
+
   it('rejects non-finite numbers rather than trusting them', () => {
     expect(migrate({ ...makeState(), lastTick: Number.NaN })).toBeNull()
     expect(

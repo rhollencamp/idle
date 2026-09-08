@@ -30,15 +30,16 @@ Run a single test file with `npx vitest run src/game/tick.test.ts`, or `npx vite
 
 ## Architecture
 
-`src/game/` is the game engine, kept independent of React: the state shape (`types.ts`), a pure `advanceTo(state, now)` tick (`tick.ts`), and localStorage persistence (`save.ts`). `useGameLoop.ts` is the only React seam — it owns the tick interval, autosaves, and saves on `visibilitychange`/`pagehide`. `App.tsx` is currently its only consumer.
+`src/game/` is the game engine, kept independent of React: the state shape (`types.ts`), a pure `advanceTo(state, now)` tick (`tick.ts`), seeded randomness (`rng.ts`), and localStorage persistence (`save.ts`). `useGameLoop.ts` is the only React seam — it owns the tick interval, autosaves, and saves on `visibilitychange`/`pagehide`. `App.tsx` is currently its only consumer.
 
-Because `advanceTo` is elapsed-time based rather than tick-count based, offline progress falls out for free: calling it with a `now` far ahead of `lastTick` catches the state up in one step.
+`advanceTo` is a fixed-step integrator, not a closed-form formula: it runs whole `STEP_MS` steps and advances `lastTick` by exactly the time it consumed, carrying the sub-step remainder to the next call. That is what makes the result depend on elapsed time alone rather than on how it was split into calls, which matters because population, food, and faith are a coupled loop. Offline progress is the same code path — a `now` far ahead of `lastTick` just runs more steps, up to `MAX_STEPS_PER_ADVANCE`, past which the step widens so a long absence stays bounded work. All sim rules go in `simulateStep`; the loop around it only decides how many steps and how wide.
 
 Tests live alongside the code they cover (`src/game/*.test.ts`) — Vitest with a jsdom environment (`vitest.config.ts`), plus `@testing-library/react` for hook tests. `App.tsx` and the service-worker wiring aren't unit tested; verify those by running the app.
 
 ## Gotchas
 
 - **Save compatibility:** `save.ts` keys localStorage by a versioned `SAVE_KEY` (`island-god:save:v2`, derived from `SAVE_VERSION` in `types.ts`), and `migrate()` is the single seam that turns an unknown saved blob into a `GameState` or `null`. Handle additive `GameState` changes inside `migrate` by defaulting the new field, so existing saves survive; bumping `SAVE_VERSION` discards every save and is reserved for reshapes that can't be repaired. `LEGACY_SAVE_KEYS` lists retired keys, cleared on load.
+- **Randomness:** nothing in `src/game/` may call `Math.random`. Draws come from `createRng(seed, step, stream)` in `rng.ts` — a pure function of the save's `seed`, the step index, and a named stream — so an absence resolves identically however it is replayed, and can be tested. New systems that draw randomly should take their own `stream` name rather than sharing one, so they can't shift each other's numbers.
 - **Base path:** the app is served from a subpath, so `base` in `vite.config.ts` and the manifest's `start_url`/`scope` are all pinned to `/idle/` and have to change together.
 
 ## Further reading

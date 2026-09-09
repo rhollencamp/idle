@@ -81,7 +81,7 @@ absence from reading as a punishment:
 
 - **A birth needs the yield to cover the larger village**, not merely a full
   granary. Growing on stock alone would push the village past what its
-  foragers can feed, starve it back, and leave it oscillating across its
+  gardeners can feed, starve it back, and leave it oscillating across its
   carrying capacity, killing someone each lap.
 - **Starvation never takes the last villager.** Once yields derive from jobs,
   an empty shore can never gather again — a wipe with no way back.
@@ -103,8 +103,10 @@ placeholder.
 - Retitle to **Mate Atua** across `index.html`, the PWA manifest in
   `vite.config.ts`, `package.json`, and `App.tsx`. The docs already carry the
   name; the app does not.
-- Rewrite the header copy for the chief framing: a village on a shore, and
-  something wrong with the sea.
+- Rewrite the header copy for the framing in `docs/setting.md`: a pā on a
+  shore, a rangatira, and a guardian gone silent.
+- Adopt the setting's vocabulary in the UI — pā, rangatira, toa, tohunga,
+  pātaka — and nowhere else yet. Macrons included; they are not optional.
 - Move `SAVE_KEY` to the new name and add the old key to `LEGACY_SAVE_KEYS` so
   it is cleared rather than left behind.
 - `base` in `vite.config.ts` stays `/idle/` — it tracks the repository name,
@@ -114,18 +116,20 @@ placeholder.
 the new name and icon, and an existing save is discarded cleanly on first load
 rather than resurrecting under two keys.
 
-### Step 5: Jobs and Faith income
+### Step 5: Jobs and Devotion income
 
-- Job assignment as counts that sum to population: forager, woodcutter,
-  quarrier, warrior, tohunga.
-- Food, wood, and stone accrue from their jobs; Faith accrues via
-  `tohunga × faithPerTohunga × shrineMultiplier` (multiplier pinned at 1.0).
-- Warriors gather nothing and eat more than the rest, so a standing guard costs
+- Job assignment as counts that sum to population: gardener, woodcutter,
+  quarrier, toa, tohunga.
+- Food, wood, and stone accrue from their jobs; Devotion accrues via
+  `tohunga × devotionPerTohunga × shrineMultiplier` (multiplier pinned at 1.0).
+- Toa gather nothing and eat more than the rest, so a standing guard costs
   something even in a quiet week.
-- `lifetimeFaith` (**Devotion** in the UI) increments alongside Faith and is
-  never decremented.
+- Rename the currency fields to match the setting: `faith` → `devotion`,
+  `lifetimeFaith` → `mana`. A rename is a state change the `migrate` seam can
+  absorb by reading the old field names, so it costs no `SAVE_VERSION` bump.
+- Mana increments alongside Devotion and is never decremented.
 
-**Done when:** moving villagers between jobs visibly changes the rates, warriors
+**Done when:** moving villagers between jobs visibly changes the rates, toa
 show as a food cost with no yield, and reassignment is handled correctly when
 population changes — births and deaths rebalance without dropping or duplicating
 villagers.
@@ -134,7 +138,7 @@ villagers.
 
 - A screen to set the labor split, breeding policy, muster share, and offering
   share.
-- Offerings convert surplus food to Faith at a poor fixed rate.
+- Offerings convert surplus food to Devotion at a poor fixed rate.
 - Muster is stored now and read by the raid step later.
 - Decrees persist in the save and apply during offline catch-up.
 
@@ -171,10 +175,10 @@ The heart of the game, and the step most likely to be fiddly.
 - Wall integrity on state, with a fixed maximum for now and repair costing wood
   and builder time.
 - An active wave lives on state and resolves a step at a time inside
-  `simulateStep`: warriors damage the wave, the wave damages the village.
+  `simulateStep`: the toa damage the wave, the wave damages the pā.
 - **The tide ends the wave**, not the fight — a fixed duration, ending early
   only if the wave is wiped out. Whatever survives is what hurts you.
-- The loss ladder, in order: wall integrity → warriors → stores → huts →
+- The loss ladder, in order: wall integrity → toa → stores → houses →
   villagers, never below the population floor.
 - Muster (step 6) pulls villagers to the wall for the wave's duration.
 - The whole thing resolves identically during offline catch-up.
@@ -190,8 +194,7 @@ screen.
 The active layer during a raid. No currency, no cooldown — each is a trade.
 
 - **Rally** (all jobs to the wall for the wave), **Bar the doors** (fewer
-  villagers lost, more stores taken), **Sortie** (kill faster, lose more
-  warriors).
+  villagers lost, more stores taken), **Sortie** (kill faster, lose more toa).
 - Commands apply for the remainder of the current wave only, and are recorded
   on the wave so the Chronicle can report what you ordered.
 - Absent players get the default: hold the wall.
@@ -204,17 +207,17 @@ did before this step existed.
 
 ## Phase 3 — The village answers
 
-### Step 10: The atua's blessings
+### Step 10: The kaitiaki's blessings
 
-- Data-driven blessing definitions: Faith cost, Devotion tier, effect (a
+- Data-driven blessing definitions: Devotion cost, Mana tier, effect (a
   permanent modifier, an unlock, or a change to how a rule works).
-- Purchased permanently, never cast. Faith is spent here and nowhere else.
+- Purchased permanently, never cast. Devotion is spent here and nowhere else.
 - UI: the branch as a tier list showing cost, effect, and what is still locked
-  behind Devotion.
+  behind Mana.
 
-**Done when:** buying a blessing spends Faith, applies its effect immediately
-and permanently, and survives a reload; a blessing above your Devotion is
-visible but unbuyable with its threshold shown.
+**Done when:** buying a blessing spends Devotion, applies its effect
+immediately and permanently, and survives a reload; a blessing above your Mana
+is visible but unbuyable with its threshold shown.
 
 ### Step 11: Petitions
 
@@ -261,14 +264,14 @@ night's raid, and the buffer is capped so the save can't grow without bound.
 
 ### Step 14: Buildings and the tech tree
 
-- Huts (population cap), granary (food cap), shrine → temple (shrine
-  multiplier), palisade → wall → seawall (wall maximum), watchtower (earlier
-  warning), workshops (gathering and weapon tiers) — replacing every fixed cap
-  from the phases above.
+- Houses (population cap), the pātaka (food cap), the shrine and its upgrades
+  (shrine multiplier), the wall and its upgrades (wall maximum), watchtowers
+  (earlier warning), and workshops (gathering and weapon tiers) — replacing
+  every fixed cap from the phases above.
 - Construction takes villager time and materials rather than completing
   instantly; builders come out of the labor split.
-- The three branches presented as one tree, with the atua branch from step 10
-  as its third column.
+- The three branches presented as one tree, with the kaitiaki branch from step
+  10 as its third column.
 
 **Done when:** caps are building-derived everywhere, construction progresses
 correctly through an offline catch-up, and a wave arriving mid-construction
@@ -276,11 +279,11 @@ interacts with it sensibly.
 
 ### Step 15: The last tide
 
-- The endgame of the atua branch: a final wave that is the answer to the
-  premise, gated behind Devotion and a very expensive build.
-- Surviving it ends the run and offers the next shore.
-- Divine Essence awarded from Devotion; a boon shop; a reset that preserves
-  essence, boons, and knowledge of the rites.
+- The endgame of the kaitiaki's branch: a final wave that is the answer to the
+  premise, gated behind Mana and a very expensive build.
+- Surviving it ends the run and takes the pā to its next landfall.
+- Carry-over earned from Mana; a shop for permanent advantages; a reset that
+  preserves them and the karakia already kept.
 
 **Done when:** a full run can be completed and restarted, and a second run with
 boons reaches the escalation that ended the first one measurably sooner.
@@ -289,8 +292,8 @@ boons reaches the escalation that ended the first one measurably sooner.
 
 ## Deliberately not in this plan
 
-Individually simulated villagers, terrain and wall placement, rival villages, a
-creature of your own, and alignment. All are captured under _Future ideas_ in
+Individually simulated villagers, terrain and wall placement, other pā, a
+taniwha of your own, and alignment. All are captured under _Future ideas_ in
 `docs/mechanics.md`. They get revisited after step 9, when we'll know whether
 the raid loop is actually fun — which is the real question this plan exists to
 answer as cheaply as possible.

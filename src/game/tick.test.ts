@@ -31,6 +31,8 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     devotion: 0,
     mana: 0,
     population: 5,
+    births: 0,
+    deaths: 0,
     jobs: jobs({ gardener: 4, woodcutter: 1 }),
     starvation: 0,
     seed: 424242,
@@ -41,6 +43,33 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
 }
 
 describe('advanceTo', () => {
+  it('counts every birth and every death, not just the net change', () => {
+    // Fed well enough to raise children, with the food stored to pay for them.
+    const grown = advanceTo(
+      makeState({
+        population: 3,
+        jobs: jobs({ gardener: 3 }),
+        resources: { food: 200, wood: 0, stone: 0 },
+      }),
+      1000 + 10 * 60 * 1000,
+    )
+
+    expect(grown.births).toBeGreaterThan(0)
+    expect(grown.deaths).toBe(0)
+    expect(grown.population).toBe(3 + grown.births)
+
+    // The same pā with nobody left in the gardens: it starves back down, and
+    // the births it had already paid for stay on the books.
+    const starved = advanceTo(
+      { ...grown, jobs: noJobs(), resources: { ...grown.resources, food: 0 } },
+      grown.lastTick + 10 * 60 * 1000,
+    )
+
+    expect(starved.births).toBe(grown.births)
+    expect(starved.deaths).toBeGreaterThan(0)
+    expect(starved.population).toBe(3 + starved.births - starved.deaths)
+  })
+
   it('accrues each gathered store from the villagers working it', () => {
     const next = advanceTo(makeState(), 1000 + 2000)
 

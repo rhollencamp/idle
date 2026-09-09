@@ -20,6 +20,10 @@ export function createInitialState(now: number = Date.now()): GameState {
     devotion: 0,
     mana: 0,
     population: 5,
+    // The five who are already here were not born into the pā's account of
+    // itself: its history starts now.
+    births: 0,
+    deaths: 0,
     jobs: { ...noJobs(), gardener: 2 },
     starvation: 0,
     seed: makeSeed(now),

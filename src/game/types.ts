@@ -31,6 +31,17 @@ export interface GameState {
   mana: number
   population: number
   /**
+   * Everyone ever born into the pā, and everyone it has ever buried. Running
+   * totals rather than a net figure: six born and four starved is a different
+   * night from two born and none lost, and a population count cannot tell
+   * them apart. They only ever rise, so any two snapshots subtract into an
+   * account of what happened between them — which is what the return summary
+   * reports, and what the Chronicle (step 13) will render properly once the
+   * sim keeps a log rather than a tally.
+   */
+  births: number
+  deaths: number
+  /**
    * How many villagers hold each job. Sums to at most `population`; the
    * remainder are unassigned. It is never allowed to exceed the population,
    * which is what `trimJobsTo` in `village.ts` guarantees after a death.

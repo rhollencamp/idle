@@ -3,6 +3,7 @@ import { Container, MantineProvider } from '@mantine/core'
 import { useGameLoop } from './game/useGameLoop'
 import { AppHeader } from './ui/AppHeader'
 import { NavDrawer } from './ui/NavDrawer'
+import { ReturnSummary } from './ui/ReturnSummary'
 import { AboutView } from './ui/AboutView'
 import { SaveView } from './ui/SaveView'
 import { SettingsView } from './ui/SettingsView'
@@ -13,7 +14,14 @@ import { usePwaUpdate } from './usePwaUpdate'
 import { theme } from './theme'
 
 function App() {
-  const { state, trainVillager, resetGame, importGame } = useGameLoop()
+  const {
+    state,
+    summary,
+    trainVillager,
+    dismissSummary,
+    resetGame,
+    importGame,
+  } = useGameLoop()
   const [view, setView] = useState<View>('village')
   const [menuOpened, setMenuOpened] = useState(false)
   const updateReady = usePwaUpdate()
@@ -25,6 +33,8 @@ function App() {
 
   return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
+      <ReturnSummary summary={summary} onDismiss={dismissSummary} />
+
       <div className="app-shell">
         {/* A photograph of wet sand, fixed behind the scrolling cards. Purely
             decorative, so it is hidden from assistive technology. */}

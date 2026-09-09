@@ -22,7 +22,9 @@ describe('useGameLoop', () => {
       vi.advanceTimersByTime(1000)
     })
 
-    expect(result.current.state.resources.food.amount).toBeCloseTo(20.5, 5)
+    // 20 stored, plus a second of the starting village's net food: 0.8
+    // gathered against five villagers eating 0.05 each.
+    expect(result.current.state.resources.food.amount).toBeCloseTo(20.55, 5)
   })
 
   it('autosaves on an interval', () => {

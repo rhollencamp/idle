@@ -57,6 +57,12 @@ describe('migrate', () => {
     expect(migrate(preSeed)?.seed).toBe(migrated?.seed)
   })
 
+  it('fills in starvation for a save written before famines existed', () => {
+    const { starvation: _starvation, ...preFamine } = makeState()
+
+    expect(migrate(preFamine)?.starvation).toBe(0)
+  })
+
   it('keeps a stored seed and step rather than resetting them', () => {
     const state = makeState({ seed: 777, step: 42 })
 

@@ -11,9 +11,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Island God',
-        short_name: 'Island God',
-        description: 'An idle game where you are the god of an island tribe.',
+        name: 'Mate Atua',
+        short_name: 'Mate Atua',
+        description:
+          'An idle game: your pā holds the shore against what the sea is sending up the beach.',
         theme_color: '#0e5c82',
         background_color: '#7ed0e8',
         display: 'standalone',

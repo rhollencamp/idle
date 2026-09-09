@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadState } from './save'
 import { useGameLoop } from './useGameLoop'
 
-const SAVE_KEY = 'island-god:save:v2'
+const SAVE_KEY = 'mate-atua:save:v2'
 
 beforeEach(() => {
   localStorage.clear()

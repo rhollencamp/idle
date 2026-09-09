@@ -95,7 +95,7 @@ and what `projectFood` interpolates.
 
 ## Phase 1 — The village runs itself
 
-### Step 4: Name and frame
+### Step 4: Name and frame ✅
 
 Small, mechanical, and worth doing before more UI accumulates against the
 placeholder.
@@ -115,6 +115,16 @@ placeholder.
 **Done when:** nothing user-visible carries the old name, the app installs with
 the new name and icon, and an existing save is discarded cleanly on first load
 rather than resurrecting under two keys.
+
+Landed. `SAVE_KEY` is now `mate-atua:save:v2` and the old key joins
+`LEGACY_SAVE_KEYS`, so a save written under the previous name is cleared rather
+than stranded — verified in the browser, not just in a test. The vocabulary
+in the UI is only what the game already models: the pā and the pātaka. The
+currency is still labelled Faith, because renaming it is a state change and
+belongs with the jobs step rather than half-done here.
+
+The icons in `public/` are still the scaffold's placeholder mark. They want
+replacing, but drawing them is not this step's job.
 
 ### Step 5: Jobs and Devotion income
 

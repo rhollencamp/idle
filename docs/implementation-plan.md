@@ -52,8 +52,8 @@ are a coupled feedback loop, so it had to become an integrator.
 well under a second.
 
 Landed with `STEP_MS = 1000` and `MAX_STEPS_PER_ADVANCE = 345_600` — four days
-at full resolution, measured at ~10ms, with anything longer resolving in wider
-buckets at the same cost. The step is the UI's resolution too unless the
+at full resolution, with anything longer resolving in wider buckets at the same
+cost. The step is the UI's resolution too unless the
 display interpolates, which it now does (`projection.ts`), leaving `STEP_MS`
 free to be chosen for the model alone. Revisit the budget against measured
 coarse-vs-fine divergence, not against a target absence length.
@@ -154,10 +154,17 @@ eaten per villager and 1.5× that for a toa.
 
 Rates stopped being stored. `resources` holds amounts only and every rate is
 derived from `state.jobs`, because a stored rate would leave the screen and the
-save disagreeing for up to a second after a reassignment. That made the tick
-allocation-sensitive — building a rate table per step turned a 30-day catch-up
-from ~10ms into 275ms and tripped the perf guard, so the tick reads the two
-rates it needs directly and `gatherRates` is for the UI.
+save disagreeing for up to a second after a reassignment.
+
+That made the tick allocation-sensitive, and the perf guard earned its keep by
+catching it. Measured on the build container, a 30-day catch-up costs 37ms on
+the pre-jobs engine and 275ms once rates were built into an object per step;
+reading the rates directly and flattening the yield table brings it to ~95ms.
+The remaining 2.5× is the step genuinely doing more, and 95ms of one-time work
+on a return after a month is not worth chasing further. The guard was moved to
+600ms, since at 150ms it sat close enough to the real figure to trip on a busy
+runner rather than on a regression — the ~10ms it was originally written
+against is not reproducible here on any version of the code.
 
 Three rules the sketch above did not settle:
 

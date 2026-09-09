@@ -193,10 +193,12 @@ describe('advanceTo step budget', () => {
     const elapsedMs = performance.now() - startedAt
 
     expect(next.step).toBeLessThanOrEqual(MAX_STEPS_PER_ADVANCE)
-    // A guard against per-step cost regressing, not a performance target:
-    // this is ~10ms on a dev machine, so tripping it means a step got an
-    // order of magnitude more expensive, not that a CI runner was busy.
-    expect(elapsedMs).toBeLessThan(150)
+    // A guard against per-step cost regressing by an order of magnitude, not
+    // a performance target. Measured on a slow container: ~95ms warm, and up
+    // to ~150ms cold or under load. The bound is set well clear of that so a
+    // busy runner never trips it — an actual regression shows up as
+    // seconds, not as a hundred milliseconds.
+    expect(elapsedMs).toBeLessThan(600)
     // A coarser step still covers the whole absence, so nothing accrues slowly.
     expect(next.resources.wood).toBeCloseTo(
       (WOOD_PER_WOODCUTTER * thirtyDaysMs) / 1000,

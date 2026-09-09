@@ -28,6 +28,27 @@ export const JOB_YIELD: Readonly<
   quarrier: { resource: 'stone', perSecond: 0.1 },
 }
 
+/**
+ * The non-food yields, flattened once at module load for the tick's hot loop.
+ *
+ * `simulateStep` runs up to `MAX_STEPS_PER_ADVANCE` times in a single
+ * catch-up, so walking `JOB_KEYS` and looking each job up in `JOB_YIELD` per
+ * step is not free — it is a megamorphic property access and a fresh iterator
+ * every time. Flattening it here costs nothing and keeps the tick reading a
+ * dense array of plain numbers.
+ */
+export const GATHERED_YIELDS: readonly {
+  job: JobKey
+  resource: ResourceKey
+  perSecond: number
+}[] = JOB_KEYS.flatMap((job) => {
+  const spec = JOB_YIELD[job]
+  return spec && spec.resource !== 'food' ? [{ job, ...spec }] : []
+})
+
+/** Hoisted for the same reason: the tick reads it once per step. */
+const FOOD_PER_GARDENER = JOB_YIELD.gardener?.perSecond ?? 0
+
 /** Devotion one tohunga earns per second, before the shrine multiplier. */
 export const DEVOTION_PER_TOHUNGA = 0.1
 
@@ -156,7 +177,7 @@ export function gatherRates(state: GameState): Record<ResourceKey, number> {
 
 /** What the gardens bring in per second, without building a rate table. */
 export function foodYieldPerSecond(state: GameState): number {
-  return state.jobs.gardener * (JOB_YIELD.gardener?.perSecond ?? 0)
+  return state.jobs.gardener * FOOD_PER_GARDENER
 }
 
 /** What the tohunga earn per second at the shrine. */

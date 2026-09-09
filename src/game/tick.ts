@@ -4,8 +4,7 @@ import {
   MIN_POPULATION,
   POPULATION_CAP,
   SECONDS_PER_STARVATION_DEATH,
-  JOB_KEYS,
-  JOB_YIELD,
+  GATHERED_YIELDS,
   canFeedAnother,
   devotionPerSecond,
   foodUpkeepPerSecond,
@@ -115,15 +114,13 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
  * loop around it only decides how many steps to run and how wide they are.
  */
 function simulateStep(draft: GameState, dtSeconds: number): void {
-  // Walked directly rather than through a rate table: a catch-up runs this
-  // hundreds of thousands of times, and an object per step is not free. Food
-  // is skipped here because it is spent as well as gathered, so
-  // `simulateVillage` settles it.
-  for (const job of JOB_KEYS) {
-    const yieldSpec = JOB_YIELD[job]
-    if (!yieldSpec || yieldSpec.resource === 'food') continue
-    draft.resources[yieldSpec.resource] +=
-      draft.jobs[job] * yieldSpec.perSecond * dtSeconds
+  // An indexed loop over a flattened list rather than a rate table: a catch-up
+  // runs this hundreds of thousands of times, so neither an object nor an
+  // iterator per step is free. Food is absent from the list because it is
+  // spent as well as gathered, so `simulateVillage` settles it.
+  for (let i = 0; i < GATHERED_YIELDS.length; i += 1) {
+    const { job, resource, perSecond } = GATHERED_YIELDS[i]
+    draft.resources[resource] += draft.jobs[job] * perSecond * dtSeconds
   }
 
   simulateVillage(draft, dtSeconds)

@@ -78,10 +78,10 @@ function App() {
         <header className="app-header">
           <Container size="sm" py="md" ta="center">
             <Title order={1} size="h4" mb={4}>
-              Island God
+              Mate Atua
             </Title>
             <Text size="sm" c="dimmed">
-              A tribe lives on your island. They are waiting to hear from you.
+              The sea is taking back what it lost. Your pā stands in its way.
             </Text>
           </Container>
         </header>
@@ -116,7 +116,7 @@ function App() {
 
             <Card withBorder padding={0}>
               <Group justify="space-between" align="center" p="sm">
-                <Text fw={600}>Village</Text>
+                <Text fw={600}>The Pā</Text>
                 {starving && (
                   <Badge color="red" variant="light">
                     Starving
@@ -138,18 +138,18 @@ function App() {
                     aria-label={
                       canGrow
                         ? 'Food stored toward the next villager'
-                        : 'Granary fullness'
+                        : 'How full the pātaka is'
                     }
                   />
                 </Progress.Root>
                 <Text size="sm" c="dimmed">
                   {starving
-                    ? 'The granary is empty. Your people are dying.'
+                    ? 'The pātaka is empty. Your people are dying.'
                     : canGrow
                       ? `${BIRTH_FOOD_COST} food feeds a newborn.`
                       : hasHousing
                         ? 'They gather too little to feed another mouth.'
-                        : 'Every hut is full.'}
+                        : 'Every house is full.'}
                 </Text>
                 <Text size="sm" c="dimmed">
                   They eat {foodUpkeepPerSecond(state.population).toFixed(2)}
@@ -175,7 +175,7 @@ function App() {
                     <Progress.Section
                       value={(food / FOOD_CAP) * 100}
                       color={netFood < 0 ? 'red' : undefined}
-                      aria-label="Food stored, as a share of the granary"
+                      aria-label="Food stored, as a share of the pātaka"
                     />
                   </Progress.Root>
                   <Badge ff="monospace" color={netFood < 0 ? 'red' : undefined}>

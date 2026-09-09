@@ -2,10 +2,15 @@ import { createInitialState } from './initialState'
 import { makeSeed } from './rng'
 import { SAVE_VERSION, type GameState, type ResourceState } from './types'
 
-const SAVE_KEY = `island-god:save:v${SAVE_VERSION}`
+const SAVE_KEY = `mate-atua:save:v${SAVE_VERSION}`
 
-/** Keys from earlier, incompatible shapes. Cleared on load so they don't linger. */
-const LEGACY_SAVE_KEYS = ['castaway-idle:save:v1']
+/**
+ * Keys this game no longer writes, cleared on load so they don't linger in a
+ * player's storage. A key retires either because the saved shape changed
+ * incompatibly or because the game's name did — a renamed key is a fresh
+ * start, since there is nothing to read the old blob back into.
+ */
+const LEGACY_SAVE_KEYS = ['castaway-idle:save:v1', 'island-god:save:v2']
 
 function isResourceState(value: unknown): value is ResourceState {
   if (typeof value !== 'object' || value === null) return false

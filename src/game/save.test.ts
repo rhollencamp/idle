@@ -3,8 +3,9 @@ import { createInitialState } from './initialState'
 import { clearSave, loadState, migrate, saveState } from './save'
 import { SAVE_VERSION, type GameState } from './types'
 
-const SAVE_KEY = `island-god:save:v${SAVE_VERSION}`
+const SAVE_KEY = `mate-atua:save:v${SAVE_VERSION}`
 const LEGACY_V1_KEY = 'castaway-idle:save:v1'
+const LEGACY_NAME_KEY = 'island-god:save:v2'
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return { ...createInitialState(), lastTick: 500, ...overrides }
@@ -115,6 +116,18 @@ describe('loadState', () => {
 
     expect(loadState().lifetimeFaith).toBe(0)
     expect(localStorage.getItem(LEGACY_V1_KEY)).toBeNull()
+  })
+
+  it('starts fresh from a save written under the old game name', () => {
+    // The key carries the game's name, so a rename retires the old key. The
+    // blob under it is structurally fine and simply has nowhere to go — the
+    // point of the test is that it is cleared rather than left to sit in a
+    // player's storage forever.
+    const stranded = makeState({ lifetimeFaith: 500 })
+    localStorage.setItem(LEGACY_NAME_KEY, JSON.stringify(stranded))
+
+    expect(loadState().lifetimeFaith).toBe(0)
+    expect(localStorage.getItem(LEGACY_NAME_KEY)).toBeNull()
   })
 })
 

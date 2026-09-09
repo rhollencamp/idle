@@ -123,8 +123,11 @@ in the UI is only what the game already models: the pā and the pātaka. The
 currency is still labelled Faith, because renaming it is a state change and
 belongs with the jobs step rather than half-done here.
 
-The icons in `public/` are still the scaffold's placeholder mark. They want
-replacing, but drawing them is not this step's job.
+The icons are the crab from game-icons.net, recoloured to the app's accent and
+rendered into the set the manifest expects. `public/favicon.svg` is the source
+of truth; the maskable variant scales the artwork to fit Android's safe zone,
+measured from the path's real bounding box rather than guessed. Attribution
+(CC BY 3.0) is in the README.
 
 ### Step 5: Jobs and Devotion income
 

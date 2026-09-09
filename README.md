@@ -43,3 +43,12 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## Credits
+
+The app icon is [Crab](https://game-icons.net/lorc/originals/crab.html) by
+**Lorc**, from [game-icons.net](https://game-icons.net), used under
+[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and recoloured to the
+app's palette. `public/favicon.svg` is the source; the PNGs beside it are
+rendered from it, including a maskable variant whose artwork is scaled to sit
+inside Android's safe zone.

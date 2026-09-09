@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createInitialState } from './initialState'
 import { loadState } from './save'
 import { useGameLoop } from './useGameLoop'
 
@@ -69,5 +70,24 @@ describe('useGameLoop', () => {
 
     expect(result.current.state.lifetimeFaith).toBe(0)
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
+  })
+
+  it('importGame adopts the given state, catches it up, and saves it', () => {
+    const { result } = renderHook(() => useGameLoop())
+
+    const imported = {
+      ...createInitialState(),
+      lifetimeFaith: 250,
+      lastTick: Date.now() - 10_000,
+    }
+
+    act(() => {
+      result.current.importGame(imported)
+    })
+
+    // The ten seconds since the export was written are paid out on the way in,
+    // so the imported figure is the floor rather than the exact value.
+    expect(result.current.state.lifetimeFaith).toBeGreaterThan(250)
+    expect(loadState().lifetimeFaith).toBe(result.current.state.lifetimeFaith)
   })
 })

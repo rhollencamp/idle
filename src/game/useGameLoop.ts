@@ -47,5 +47,15 @@ export function useGameLoop() {
     setState(fresh)
   }
 
-  return { state, resetGame }
+  // An imported save is caught up to now the same way a loaded one is, so a
+  // file written days ago pays its offline progress on the way in. Written
+  // straight away rather than waiting for the next autosave, so a reload
+  // cannot land back on the save that was just replaced.
+  const importGame = (next: GameState) => {
+    const caughtUp = advanceTo(next, Date.now())
+    saveState(caughtUp)
+    setState(caughtUp)
+  }
+
+  return { state, resetGame, importGame }
 }

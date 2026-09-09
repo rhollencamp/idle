@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createInitialState } from './initialState'
-import { clearSave, loadState, migrate, saveState } from './save'
+import {
+  clearSave,
+  loadState,
+  migrate,
+  parseSave,
+  saveState,
+  serializeSave,
+} from './save'
 import { SAVE_VERSION, type GameState } from './types'
 
 const SAVE_KEY = `mate-atua:save:v${SAVE_VERSION}`
@@ -137,5 +144,27 @@ describe('clearSave', () => {
     clearSave()
 
     expect(loadState().lifetimeFaith).toBe(0)
+  })
+})
+
+describe('serializeSave / parseSave', () => {
+  it('round-trips a save through text', () => {
+    const state = makeState({ lifetimeFaith: 42 })
+
+    expect(parseSave(serializeSave(state))).toEqual(state)
+  })
+
+  it('reads an export the same way a load would', () => {
+    // The exported blob goes through `migrate`, so a save written before
+    // `starvation` existed is repaired on import rather than rejected.
+    const { starvation: _starvation, ...older } = makeState()
+
+    expect(parseSave(JSON.stringify(older))?.starvation).toBe(0)
+  })
+
+  it('rejects text that is not a save', () => {
+    expect(parseSave('not json at all')).toBeNull()
+    expect(parseSave('{}')).toBeNull()
+    expect(parseSave(JSON.stringify({ version: 1 }))).toBeNull()
   })
 })

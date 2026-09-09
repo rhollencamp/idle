@@ -1,32 +1,45 @@
 /** Bumped when the saved shape changes in a way `migrate` cannot repair. */
 export const SAVE_VERSION = 2
 
-export interface ResourceState {
-  amount: number
-  perSecond: number
-}
-
-/** Materials the village gathers and spends. Faith is tracked separately. */
+/** Materials the pā gathers and spends. Devotion is tracked separately. */
 export type ResourceKey = 'food' | 'wood' | 'stone'
+
+/**
+ * What a villager can be put to. Every villager holds at most one job, and a
+ * villager holding none is unassigned: still eating, producing nothing.
+ */
+export type JobKey = 'gardener' | 'woodcutter' | 'quarrier' | 'toa' | 'tohunga'
 
 export interface GameState {
   version: typeof SAVE_VERSION
-  resources: Record<ResourceKey, ResourceState>
   /**
-   * The spendable Faith balance and its income. Miracles and prayers draw
-   * this down; progression does not key off it.
+   * Stored amounts only. Rates are derived from `jobs` rather than stored
+   * beside the amount, so moving a villager changes the rate on the same
+   * frame instead of at the next step boundary.
    */
-  faith: ResourceState
+  resources: Record<ResourceKey, number>
   /**
-   * Total Faith ever earned. Only ever increases, so spending freely never
-   * stalls progression — every unlock is gated on this instead of `faith`.
+   * The spendable balance, earned by tohunga keeping the karakia. It buys
+   * permanent blessings and nothing else — there is no rite to cast.
    */
-  lifetimeFaith: number
+  devotion: number
+  /**
+   * The pā's standing. Accumulates alongside Devotion and is never spent or
+   * reduced, so it can gate progression without spending stalling it: a
+   * player who buys freely reaches the same tiers as one who hoards.
+   */
+  mana: number
   population: number
+  /**
+   * How many villagers hold each job. Sums to at most `population`; the
+   * remainder are unassigned. It is never allowed to exceed the population,
+   * which is what `trimJobsTo` in `village.ts` guarantees after a death.
+   */
+  jobs: Record<JobKey, number>
   /**
    * Progress toward the next starvation death, in [0, 1]. Held on state
    * rather than derived because it is a clock, not a level: it accumulates
-   * only while food need goes unmet and unwinds when the granary recovers,
+   * only while food need goes unmet and unwinds when the pātaka recovers,
    * so a brief shortfall costs nothing.
    */
   starvation: number

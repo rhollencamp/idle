@@ -4,10 +4,15 @@ import {
   MIN_POPULATION,
   POPULATION_CAP,
   SECONDS_PER_STARVATION_DEATH,
+  JOB_KEYS,
+  JOB_YIELD,
   canFeedAnother,
+  devotionPerSecond,
   foodUpkeepPerSecond,
+  foodYieldPerSecond,
+  trimJobsTo,
 } from './village'
-import type { GameState, ResourceKey } from './types'
+import type { GameState } from './types'
 
 /**
  * The sim's base resolution.
@@ -37,12 +42,6 @@ export const STEP_MS = 1000
 export const MAX_STEPS_PER_ADVANCE = 345_600
 
 /**
- * Resources that only ever accrue. Food is absent on purpose: it is spent as
- * well as gathered, so it is settled in `simulateVillage` instead.
- */
-const GATHERED_KEYS: readonly ResourceKey[] = ['wood', 'stone']
-
-/**
  * Food, births, and starvation — the loop that couples the granary to the
  * population and back.
  *
@@ -53,11 +52,10 @@ const GATHERED_KEYS: readonly ResourceKey[] = ['wood', 'stone']
  * shortfall is decided before a birth can empty the granary.
  */
 function simulateVillage(draft: GameState, dtSeconds: number): void {
-  const food = draft.resources.food
-  const gathered = food.perSecond * dtSeconds
-  const eaten = foodUpkeepPerSecond(draft.population) * dtSeconds
+  const gathered = foodYieldPerSecond(draft) * dtSeconds
+  const eaten = foodUpkeepPerSecond(draft) * dtSeconds
 
-  let amount = food.amount + gathered - eaten
+  let amount = draft.resources.food + gathered - eaten
   // Going short is what starts a famine, not an empty granary as such: a
   // village living hand to mouth at zero food is fed, just not stocked.
   const wentShort = amount < 0
@@ -73,6 +71,9 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
     if (deaths > 0) {
       draft.population -= deaths
       draft.starvation -= deaths
+      // The dead were holding jobs; the sheet has to give them up or every
+      // rate read off it afterwards would count workers who are gone.
+      trimJobsTo(draft.jobs, draft.population)
     }
     // With nobody left to lose the clock would otherwise run away, and the
     // village would owe a death it could not pay for the next time it ate.
@@ -100,9 +101,13 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
   ) {
     amount -= BIRTH_FOOD_COST
     draft.population += 1
+    // A newborn is put to the gardens rather than left idle, so growing while
+    // the player is away feeds the pā instead of adding a mouth that does
+    // nothing. Moving them is a decision the player makes on their return.
+    draft.jobs.gardener += 1
   }
 
-  food.amount = Math.min(amount, FOOD_CAP)
+  draft.resources.food = Math.min(amount, FOOD_CAP)
 }
 
 /**
@@ -110,16 +115,24 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
  * loop around it only decides how many steps to run and how wide they are.
  */
 function simulateStep(draft: GameState, dtSeconds: number): void {
-  for (const key of GATHERED_KEYS) {
-    const resource = draft.resources[key]
-    resource.amount += resource.perSecond * dtSeconds
+  // Walked directly rather than through a rate table: a catch-up runs this
+  // hundreds of thousands of times, and an object per step is not free. Food
+  // is skipped here because it is spent as well as gathered, so
+  // `simulateVillage` settles it.
+  for (const job of JOB_KEYS) {
+    const yieldSpec = JOB_YIELD[job]
+    if (!yieldSpec || yieldSpec.resource === 'food') continue
+    draft.resources[yieldSpec.resource] +=
+      draft.jobs[job] * yieldSpec.perSecond * dtSeconds
   }
 
   simulateVillage(draft, dtSeconds)
 
-  const earnedFaith = draft.faith.perSecond * dtSeconds
-  draft.faith.amount += earnedFaith
-  draft.lifetimeFaith += earnedFaith
+  // Mana rises with Devotion and never falls: what the pā has earned in
+  // standing is not undone by spending what it earned in rites.
+  const earned = devotionPerSecond(draft) * dtSeconds
+  draft.devotion += earned
+  draft.mana += earned
 
   draft.step += 1
 }
@@ -132,12 +145,8 @@ function simulateStep(draft: GameState, dtSeconds: number): void {
 function draftFrom(state: GameState): GameState {
   return {
     ...state,
-    resources: {
-      food: { ...state.resources.food },
-      wood: { ...state.resources.wood },
-      stone: { ...state.resources.stone },
-    },
-    faith: { ...state.faith },
+    resources: { ...state.resources },
+    jobs: { ...state.jobs },
   }
 }
 

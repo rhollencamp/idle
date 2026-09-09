@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  ActionIcon,
   Badge,
   Button,
   Card,
@@ -13,16 +14,21 @@ import {
   Title,
 } from '@mantine/core'
 import { useGameLoop } from './game/useGameLoop'
-import { projectAmount, projectedGain, projectFood } from './game/projection'
+import { projectAmount, projectFood, projectedGain } from './game/projection'
 import {
   BIRTH_FOOD_COST,
   FOOD_CAP,
+  JOB_KEYS,
+  JOB_YIELD,
   POPULATION_CAP,
   canFeedAnother,
+  devotionPerSecond,
   foodUpkeepPerSecond,
+  gatherRates,
   netFoodPerSecond,
+  unassignedCount,
 } from './game/village'
-import type { ResourceKey } from './game/types'
+import type { JobKey, ResourceKey } from './game/types'
 import { useRenderClock } from './useRenderClock'
 import { theme } from './theme'
 
@@ -32,40 +38,61 @@ const RESOURCE_LABELS: Record<ResourceKey, string> = {
   stone: 'Stone',
 }
 
+const JOB_NAMES: Record<JobKey, string> = {
+  gardener: 'Gardeners',
+  woodcutter: 'Woodcutters',
+  quarrier: 'Quarriers',
+  toa: 'Toa',
+  tohunga: 'Tohunga',
+}
+
 function App() {
-  const { state, resetGame } = useGameLoop()
+  const { state, assignVillager, resetGame } = useGameLoop()
   const [confirmingReset, setConfirmingReset] = useState(false)
   // The sim advances in whole seconds; this fills in the fraction between
   // steps so the numbers glide instead of stepping.
   const now = useRenderClock()
 
-  const gathered = (['wood', 'stone'] as const).map(
-    (key) => [key, state.resources[key]] as const,
+  const rates = gatherRates(state)
+  const devotionRate = devotionPerSecond(state)
+  const devotion = projectAmount(
+    state.devotion,
+    devotionRate,
+    state.lastTick,
+    now,
   )
+  const mana = state.mana + projectedGain(devotionRate, state.lastTick, now)
+  // Whole points once there are enough to count; a decimal before that, so a
+  // pā that has just started earning does not read as having earned nothing.
+  const manaLabel = mana < 10 ? mana.toFixed(1) : mana.toFixed(0)
+
+  /** What a job is contributing right now — the number the choice turns on. */
+  const jobOutput = (job: JobKey): string => {
+    if (job === 'toa') return 'Holds the wall. Eats more than the rest.'
+
+    const perSecond =
+      job === 'tohunga' ? devotionRate : rates[JOB_YIELD[job]!.resource]
+    const label =
+      job === 'tohunga' ? 'Devotion' : RESOURCE_LABELS[JOB_YIELD[job]!.resource]
+
+    return `${label} +${perSecond.toFixed(2)}/s`
+  }
 
   const food = projectFood(state, now)
   // Rounded before its sign is read, so a rate that displays as zero is not
   // shown as a red "-0.00/s" on the strength of a float's last bit.
   const netFood = Number(netFoodPerSecond(state).toFixed(2)) || 0
+  const idle = unassignedCount(state)
   const starving = state.starvation > 0
   const hasHousing = state.population < POPULATION_CAP
   // Growing needs somewhere to put the newcomer and the food to keep feeding
   // them, which is the same pair of questions the sim asks before a birth.
   const canGrow = hasHousing && canFeedAnother(state)
-  // What the village is working toward: another villager when one is coming,
-  // and otherwise a fuller granary.
+  // What the pā is working toward: another villager when one is coming, and
+  // otherwise a fuller pātaka.
   const villageProgress = canGrow
     ? (Math.min(food, BIRTH_FOOD_COST) / BIRTH_FOOD_COST) * 100
     : (food / FOOD_CAP) * 100
-
-  const faith = projectAmount(state.faith, state.lastTick, now)
-  const lifetimeFaith =
-    state.lifetimeFaith +
-    projectedGain(state.faith.perSecond, state.lastTick, now)
-
-  // Fill the bar with progress toward the next whole unit, so an idle screen
-  // still visibly ticks.
-  const faithProgress = (faith % 1) * 100
 
   const handleReset = () => {
     resetGame()
@@ -90,26 +117,26 @@ function App() {
           <Stack gap="md">
             <Card withBorder padding={0}>
               <Text fw={600} p="sm">
-                Faith
+                Devotion
               </Text>
               <Divider />
               <Stack gap="xs" p="sm">
                 <Group justify="space-between" align="baseline" wrap="nowrap">
                   <Text size="xl" ff="monospace">
-                    {faith.toFixed(1)}
+                    {devotion.toFixed(1)}
                   </Text>
-                  <Badge ff="monospace">
-                    +{state.faith.perSecond.toFixed(1)}/s
-                  </Badge>
+                  <Badge ff="monospace">+{devotionRate.toFixed(2)}/s</Badge>
                 </Group>
                 <Progress.Root>
                   <Progress.Section
-                    value={faithProgress}
-                    aria-label="Faith progress toward the next point"
+                    value={(devotion % 1) * 100}
+                    aria-label="Devotion toward the next point"
                   />
                 </Progress.Root>
                 <Text size="sm" c="dimmed">
-                  {lifetimeFaith.toFixed(0)} faith earned in all
+                  {devotionRate > 0
+                    ? `${manaLabel} mana — the standing of your pā`
+                    : 'No one keeps the karakia. Put a villager to the shrine.'}
                 </Text>
               </Stack>
             </Card>
@@ -152,10 +179,73 @@ function App() {
                         : 'Every house is full.'}
                 </Text>
                 <Text size="sm" c="dimmed">
-                  They eat {foodUpkeepPerSecond(state.population).toFixed(2)}
-                  /s between them.
+                  They eat {foodUpkeepPerSecond(state).toFixed(2)}/s between
+                  them.
                 </Text>
               </Stack>
+            </Card>
+
+            <Card withBorder padding={0}>
+              <Group justify="space-between" align="center" p="sm">
+                <Text fw={600}>Work</Text>
+                {idle > 0 && (
+                  <Badge color="yellow" variant="light">
+                    {idle} unassigned
+                  </Badge>
+                )}
+              </Group>
+              {JOB_KEYS.map((job) => {
+                const count = state.jobs[job]
+                const name = JOB_NAMES[job]
+
+                return (
+                  <div key={job}>
+                    <Divider />
+                    <Group
+                      justify="space-between"
+                      align="center"
+                      p="sm"
+                      wrap="nowrap"
+                    >
+                      <div>
+                        <Text fw={600}>{name}</Text>
+                        <Text size="sm" c="dimmed">
+                          {jobOutput(job)}
+                        </Text>
+                      </div>
+                      <Group gap="xs" wrap="nowrap">
+                        <ActionIcon
+                          variant="default"
+                          radius="xl"
+                          disabled={count === 0}
+                          onClick={() => assignVillager(job, -1)}
+                          aria-label={`Take a villager off ${name}`}
+                        >
+                          −
+                        </ActionIcon>
+                        <Text ff="monospace" w={24} ta="center">
+                          {count}
+                        </Text>
+                        <ActionIcon
+                          variant="default"
+                          radius="xl"
+                          disabled={idle === 0}
+                          onClick={() => assignVillager(job, 1)}
+                          aria-label={`Put a villager to ${name}`}
+                        >
+                          +
+                        </ActionIcon>
+                      </Group>
+                    </Group>
+                  </div>
+                )
+              })}
+              <Divider />
+              <Text size="sm" c="dimmed" p="sm">
+                {idle > 0
+                  ? 'Unassigned villagers eat and do nothing. Put them to work.'
+                  : 'Take someone off a job to free them for another.'}
+              </Text>
             </Card>
 
             <Card withBorder padding={0}>
@@ -185,9 +275,13 @@ function App() {
                 </Group>
               </Stack>
 
-              {gathered.map(([key, resource]) => {
-                const amount = projectAmount(resource, state.lastTick, now)
-                const progress = (amount % 1) * 100
+              {(['wood', 'stone'] as const).map((key) => {
+                const amount = projectAmount(
+                  state.resources[key],
+                  rates[key],
+                  state.lastTick,
+                  now,
+                )
 
                 return (
                   <div key={key}>
@@ -204,13 +298,11 @@ function App() {
                       <Group gap="xs" wrap="nowrap">
                         <Progress.Root flex={1}>
                           <Progress.Section
-                            value={progress}
+                            value={(amount % 1) * 100}
                             aria-label={`${RESOURCE_LABELS[key]} progress toward the next unit`}
                           />
                         </Progress.Root>
-                        <Badge ff="monospace">
-                          +{resource.perSecond.toFixed(1)}/s
-                        </Badge>
+                        <Badge ff="monospace">+{rates[key].toFixed(2)}/s</Badge>
                       </Group>
                     </Stack>
                   </div>

@@ -129,7 +129,7 @@ of truth; the maskable variant scales the artwork to fit Android's safe zone,
 measured from the path's real bounding box rather than guessed. Attribution
 (CC BY 3.0) is in the README.
 
-### Step 5: Jobs and Devotion income
+### Step 5: Jobs and Devotion income ✅
 
 - Job assignment as counts that sum to population: gardener, woodcutter,
   quarrier, toa, tohunga.
@@ -146,6 +146,33 @@ measured from the path's real bounding box rather than guessed. Attribution
 show as a food cost with no yield, and reassignment is handled correctly when
 population changes — births and deaths rebalance without dropping or duplicating
 villagers.
+
+Landed, and the game is interactive for the first time: a Work card moves
+villagers with −/+ and the rates answer immediately. Yields are 0.25 food per
+gardener, 0.15 wood, 0.1 stone, 0.1 Devotion per tohunga, against 0.05 food
+eaten per villager and 1.5× that for a toa.
+
+Rates stopped being stored. `resources` holds amounts only and every rate is
+derived from `state.jobs`, because a stored rate would leave the screen and the
+save disagreeing for up to a second after a reassignment. That made the tick
+allocation-sensitive — building a rate table per step turned a 30-day catch-up
+from ~10ms into 275ms and tripped the perf guard, so the tick reads the two
+rates it needs directly and `gatherRates` is for the UI.
+
+Three rules the sketch above did not settle:
+
+- **Villagers move via an unassigned pool, never job-to-job.** Moving someone
+  straight from the wall to the gardens would mean silently choosing whose job
+  to empty. Two clicks, and the pool is visible while it is non-empty.
+- **A newborn is put to the gardens**, not left idle, so growing through an
+  absence feeds the pā rather than adding a mouth that does nothing.
+- **Deaths spend the unassigned first**, then come off the largest job. A lone
+  tohunga is never the one taken while a bigger job has someone to give.
+
+Migration carries a pre-jobs save across: stores written as `{ amount,
+perSecond }` are read for their amount, `faith`/`lifetimeFaith` are read into
+`devotion`/`mana`, and a village with no job sheet is put to work on the
+default roster rather than left idle.
 
 ### Step 6: Decrees
 

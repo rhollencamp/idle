@@ -51,7 +51,7 @@ Tests live alongside the code they cover (`src/game/*.test.ts`) — Vitest with 
 ## Further reading
 
 - `docs/mechanics.md` — the game design: core loop, currencies, jobs, raids, and deferred ideas.
-- `docs/setting.md` — the world, its vocabulary, and the rules we follow in drawing on Māori tradition.
+- `docs/lore.md` — the world, its vocabulary, and the rules we follow in drawing on Māori tradition.
 - `docs/implementation-plan.md` — the incremental steps for building it.
 - `docs/pwa.md` — service worker registration and the check-for-update-on-open flow.
 - `docs/deployment.md` — the GitHub Pages deploy pipeline and its constraints.

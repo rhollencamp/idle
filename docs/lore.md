@@ -1,16 +1,16 @@
-# Setting
+# Lore
 
 The world the mechanics are dressed in, the vocabulary we use for it, and the
 rules we hold ourselves to when borrowing from a living tradition.
 
-Mechanics live in `docs/mechanics.md`; this file is what things are called and
+Mechanics live in `docs/mechanics.md`; the lore is what things are called and
 why.
 
 ## The anchor
 
 **Te reo Māori and Māori cosmology**, not "Polynesian" generally. Polynesia is
 many peoples with distinct traditions, and blending Māori, Hawaiian, Samoan and
-Tahitian material into one aesthetic is exactly what makes a setting read as
+Tahitian material into one aesthetic is exactly what makes lore read as
 pastiche. One tradition, held consistently, is both better craft and better
 manners. The title is te reo, so that is the anchor.
 

@@ -2,7 +2,7 @@
 
 The design doc for the game itself. Technical/architecture decisions live in
 `CLAUDE.md` and `docs/`; the world, its vocabulary, and the rules we hold
-ourselves to when borrowing from a living tradition live in `docs/setting.md`.
+ourselves to when borrowing from a living tradition live in `docs/lore.md`.
 This file is about what the player does and why.
 
 Status: **draft, actively iterating.** Sections marked _Future_ are
@@ -25,7 +25,7 @@ the wall, what gets built, what is offered, and what the pā does while you are
 not watching. Then the tide comes in.
 
 The cosmology behind all this, and the rules we follow in using it, are in
-`docs/setting.md`.
+`docs/lore.md`.
 
 ## The central tension
 
@@ -202,7 +202,7 @@ pā along the way.
 
 It also matters for the word. Mana is standing — held and grown through deeds,
 not spent like coins — so the number that never goes down is the one that
-carries it. See `docs/setting.md`.
+carries it. See `docs/lore.md`.
 
 The branch is where the story lives. The kaitiaki is not answering, and the
 blessings are the pā's attempt to be heard again — each tier is a little more

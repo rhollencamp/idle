@@ -103,9 +103,9 @@ placeholder.
 - Retitle to **Mate Atua** across `index.html`, the PWA manifest in
   `vite.config.ts`, `package.json`, and `App.tsx`. The docs already carry the
   name; the app does not.
-- Rewrite the header copy for the framing in `docs/setting.md`: a pā on a
-  shore, a rangatira, and a guardian gone silent.
-- Adopt the setting's vocabulary in the UI — pā, rangatira, toa, tohunga,
+- Rewrite the header copy for the framing in `docs/lore.md`: a pā on a shore, a
+  rangatira, and a guardian gone silent.
+- Adopt the lore's vocabulary in the UI — pā, rangatira, toa, tohunga,
   pātaka — and nowhere else yet. Macrons included; they are not optional.
 - Move `SAVE_KEY` to the new name and add the old key to `LEGACY_SAVE_KEYS` so
   it is cleared rather than left behind.
@@ -137,7 +137,7 @@ measured from the path's real bounding box rather than guessed. Attribution
   `tohunga × devotionPerTohunga × shrineMultiplier` (multiplier pinned at 1.0).
 - Toa gather nothing and eat more than the rest, so a standing guard costs
   something even in a quiet week.
-- Rename the currency fields to match the setting: `faith` → `devotion`,
+- Rename the currency fields to match the lore: `faith` → `devotion`,
   `lifetimeFaith` → `mana`. A rename is a state change the `migrate` seam can
   absorb by reading the old field names, so it costs no `SAVE_VERSION` bump.
 - Mana increments alongside Devotion and is never decremented.

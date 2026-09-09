@@ -1,6 +1,13 @@
-# Castaway Idle
+# Mate Atua
 
-An idle survival game: stranded on an island, gather resources, unlock a skill tree, survive. Built as an installable PWA (works offline, add to your phone's home screen).
+An idle village-defense game. You are the chief of a village on the shore.
+Something has gone wrong out in the water and the sea is sending its creatures
+up the beach — so grow the village, arm it, and keep the old rites, because the
+next tide is already on its way.
+
+The village runs itself while the tab is closed: it gathers, grows, and meets
+raids on the standing orders you left it. Built as an installable PWA (works
+offline, add to your phone's home screen).
 
 ## Stack
 
@@ -11,7 +18,7 @@ An idle survival game: stranded on an island, gather resources, unlock a skill t
 ## Styling
 
 Mantine owns the look of the app. `src/theme.ts` is the single entry point: the
-island palette, the dark-scheme ramp, typography and per-component defaults all
+palette, the dark-scheme ramp, typography and per-component defaults all
 live there. `src/styles/app.css` holds only what a theme object cannot express —
 the page background, the safe-area padding, and two app-level custom properties.
 

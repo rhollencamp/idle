@@ -70,8 +70,8 @@ dark, from a real production build.
   It is tunable (`spacing`, `size="small"`, `MuiCardContent` overrides), but
   it is work MUI's defaults make necessary and Bootstrap's do not.
 - **Neither library is thematic.** Material reads as "Google app" and
-  Bootstrap reads as "admin dashboard". A game about a tribe worshipping a
-  volcano god will need a real skin either way; the question is which chassis
+  Bootstrap reads as "admin dashboard". A game about a village
+  holding a shoreline will need a real skin either way; the question is which chassis
   is easier to skin.
 - **MUI is easier to skin deeply.** `styleOverrides`, `defaultProps` and
   custom variants restyle a component everywhere from one typed place.

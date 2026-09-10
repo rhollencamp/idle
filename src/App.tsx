@@ -47,7 +47,7 @@ const JOB_NAMES: Record<JobKey, string> = {
 }
 
 function App() {
-  const { state, assignVillager, resetGame } = useGameLoop()
+  const { state, trainVillager, resetGame } = useGameLoop()
   const [confirmingReset, setConfirmingReset] = useState(false)
   // The sim advances in whole seconds; this fills in the fraction between
   // steps so the numbers glide instead of stepping.
@@ -82,7 +82,7 @@ function App() {
   // Rounded before its sign is read, so a rate that displays as zero is not
   // shown as a red "-0.00/s" on the strength of a float's last bit.
   const netFood = Number(netFoodPerSecond(state).toFixed(2)) || 0
-  const idle = unassignedCount(state)
+  const untrained = unassignedCount(state)
   const starving = state.starvation > 0
   const hasHousing = state.population < POPULATION_CAP
   // Growing needs somewhere to put the newcomer and the food to keep feeding
@@ -187,10 +187,10 @@ function App() {
 
             <Card withBorder padding={0}>
               <Group justify="space-between" align="center" p="sm">
-                <Text fw={600}>Work</Text>
-                {idle > 0 && (
+                <Text fw={600}>Trades</Text>
+                {untrained > 0 && (
                   <Badge color="yellow" variant="light">
-                    {idle} unassigned
+                    {untrained} without a trade
                   </Badge>
                 )}
               </Group>
@@ -214,24 +214,15 @@ function App() {
                         </Text>
                       </div>
                       <Group gap="xs" wrap="nowrap">
-                        <ActionIcon
-                          variant="default"
-                          radius="xl"
-                          disabled={count === 0}
-                          onClick={() => assignVillager(job, -1)}
-                          aria-label={`Take a villager off ${name}`}
-                        >
-                          −
-                        </ActionIcon>
                         <Text ff="monospace" w={24} ta="center">
                           {count}
                         </Text>
                         <ActionIcon
                           variant="default"
                           radius="xl"
-                          disabled={idle === 0}
-                          onClick={() => assignVillager(job, 1)}
-                          aria-label={`Put a villager to ${name}`}
+                          disabled={untrained === 0}
+                          onClick={() => trainVillager(job)}
+                          aria-label={`Raise a child to ${name}`}
                         >
                           +
                         </ActionIcon>
@@ -242,9 +233,9 @@ function App() {
               })}
               <Divider />
               <Text size="sm" c="dimmed" p="sm">
-                {idle > 0
-                  ? 'Unassigned villagers eat and do nothing. Put them to work.'
-                  : 'Take someone off a job to free them for another.'}
+                {untrained > 0
+                  ? 'Give each child a trade. They will hold it for life.'
+                  : 'Everyone has a trade. Your next choice arrives with the next birth.'}
               </Text>
             </Card>
 

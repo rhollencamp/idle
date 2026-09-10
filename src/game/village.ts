@@ -112,9 +112,13 @@ export function unassignedCount(state: GameState): number {
 }
 
 /**
- * A sensible opening roster: everyone gardens except one woodcutter and one
- * quarrier, so all three stores visibly move before the player touches
- * anything. Also what a save from before jobs existed is rebuilt with.
+ * Puts a whole population to work: everyone gardens except one woodcutter and
+ * one quarrier.
+ *
+ * This is for rebuilding a save that has no job sheet to read. It is not the
+ * opening roster — a new pā starts with children waiting for a trade, which
+ * is the game's first decision. A migrated village gets no such choice, and
+ * leaving it untrained would only starve it.
  */
 export function defaultJobs(population: number): Record<JobKey, number> {
   const jobs = noJobs()
@@ -127,13 +131,39 @@ export function defaultJobs(population: number): Record<JobKey, number> {
 }
 
 /**
+ * Which trade loses someone next, or `null` when nobody is left to lose.
+ *
+ * Gardeners go last, and that is the rule keeping a famine survivable. A
+ * trade is for life, so a pā that starved its way down to toa and tohunga
+ * could never gather again — the population floor would keep it alive at one
+ * villager forever, which is a wipe wearing a different hat. Taking the
+ * others first means a starving pā trends toward being all gardeners, so the
+ * famine ends itself.
+ *
+ * Among the rest it is the largest trade, which spreads the loss instead of
+ * emptying a small specialist role on the first death. `JOB_KEYS` order
+ * breaks ties, so nothing here depends on the RNG.
+ */
+function tradeToLose(jobs: Record<JobKey, number>): JobKey | null {
+  let biggest: JobKey | null = null
+
+  for (const job of JOB_KEYS) {
+    if (job === 'gardener' || jobs[job] === 0) continue
+    if (biggest === null || jobs[job] > jobs[biggest]) biggest = job
+  }
+  if (biggest !== null) return biggest
+
+  return jobs.gardener > 0 ? 'gardener' : null
+}
+
+/**
  * Drops assignments until no more villagers are working than exist.
  *
  * Deaths do not choose who they take, so the job sheet has to be reconciled
  * afterwards or it would claim workers the pā no longer has — and every rate
- * derived from it would be a lie. Trimming the largest job first spreads the
- * loss instead of emptying a small specialist role on the first death;
- * `JOB_KEYS` order breaks ties, so nothing here depends on the RNG.
+ * derived from it would be a lie. Note that this only bites once the
+ * untrained are gone: while any child is waiting for a trade, a death costs
+ * the pā that child and no work at all.
  */
 export function trimJobsTo(
   jobs: Record<JobKey, number>,
@@ -142,15 +172,12 @@ export function trimJobsTo(
   let over = assignedCount(jobs) - Math.max(population, 0)
 
   while (over > 0) {
-    let biggest = JOB_KEYS[0]
-    for (const job of JOB_KEYS) {
-      if (jobs[job] > jobs[biggest]) biggest = job
-    }
-    // Nobody is assigned anywhere, so there is nothing left to trim. Only
-    // reachable from a malformed save, but looping forever on one is worse.
-    if (jobs[biggest] === 0) return
+    const job = tradeToLose(jobs)
+    // Nobody holds a trade, so there is nothing left to trim. Only reachable
+    // from a malformed save, but looping forever on one is worse.
+    if (job === null) return
 
-    jobs[biggest] -= 1
+    jobs[job] -= 1
     over -= 1
   }
 }

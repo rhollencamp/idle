@@ -117,7 +117,7 @@ describe('the job sheet', () => {
     expect(unassignedCount(state)).toBe(2)
   })
 
-  it('opens with everyone working and nobody idle', () => {
+  it('puts a whole population to work when rebuilding a save', () => {
     const jobs = defaultJobs(5)
 
     expect(assignedCount(jobs)).toBe(5)
@@ -140,12 +140,31 @@ describe('trimJobsTo', () => {
     expect(jobs).toEqual({ ...noJobs(), gardener: 3, toa: 1 })
   })
 
-  it('takes from the largest job first', () => {
+  it('spares the gardeners while any other trade has someone to give', () => {
     const jobs = { ...noJobs(), gardener: 5, tohunga: 1 }
     trimJobsTo(jobs, 5)
 
-    expect(jobs.gardener).toBe(4)
-    expect(jobs.tohunga).toBe(1)
+    // A trade is for life, so a pā that starved its gardeners away could
+    // never gather again. The gardens are what a famine leaves standing.
+    expect(jobs.gardener).toBe(5)
+    expect(jobs.tohunga).toBe(0)
+  })
+
+  it('takes from the largest of the other trades first', () => {
+    const jobs = { ...noJobs(), gardener: 1, toa: 3, woodcutter: 1 }
+    trimJobsTo(jobs, 4)
+
+    expect(jobs.toa).toBe(2)
+    expect(jobs.woodcutter).toBe(1)
+    expect(jobs.gardener).toBe(1)
+  })
+
+  it('comes for the gardeners only when nobody else is left', () => {
+    const jobs = { ...noJobs(), gardener: 3, toa: 1 }
+    trimJobsTo(jobs, 2)
+
+    expect(jobs.toa).toBe(0)
+    expect(jobs.gardener).toBe(2)
   })
 
   it('keeps trimming until the sheet fits the pā', () => {

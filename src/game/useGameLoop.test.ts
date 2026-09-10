@@ -22,9 +22,10 @@ describe('useGameLoop', () => {
       vi.advanceTimersByTime(1000)
     })
 
-    // 20 stored, plus a second of the opening pā's net food: three gardeners
-    // bringing in 0.25 each against five villagers eating 0.05 each.
-    expect(result.current.state.resources.food).toBeCloseTo(20.5, 5)
+    // 20 stored, plus a second of the opening pā's net food: two gardeners
+    // bringing in 0.25 each against five villagers eating 0.05 each — the
+    // other three are children, who eat without gathering.
+    expect(result.current.state.resources.food).toBeCloseTo(20.25, 5)
   })
 
   it('autosaves on an interval', () => {
@@ -72,41 +73,33 @@ describe('useGameLoop', () => {
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
   })
 
-  it('moves a villager into a job only when someone is free', () => {
+  it('gives an untrained villager a trade', () => {
     const { result } = renderHook(() => useGameLoop())
 
-    // The opening roster has everyone working, so there is nobody to add.
     const before = result.current.state.jobs.toa
     act(() => {
-      result.current.assignVillager('toa', 1)
+      result.current.trainVillager('toa')
     })
-    expect(result.current.state.jobs.toa).toBe(before)
 
-    // Free one from the gardens, and now the move lands.
-    act(() => {
-      result.current.assignVillager('gardener', -1)
-    })
-    act(() => {
-      result.current.assignVillager('toa', 1)
-    })
     expect(result.current.state.jobs.toa).toBe(before + 1)
   })
 
-  it('refuses to take a villager off a job nobody holds', () => {
+  it('refuses once every villager holds a trade', () => {
     const { result } = renderHook(() => useGameLoop())
 
+    // The opening pā has three children; a fourth call has nobody to train.
     act(() => {
-      result.current.assignVillager('tohunga', -1)
+      for (let i = 0; i < 4; i += 1) result.current.trainVillager('tohunga')
     })
 
-    expect(result.current.state.jobs.tohunga).toBe(0)
+    expect(result.current.state.jobs.tohunga).toBe(3)
   })
 
-  it('never lets the job sheet claim more villagers than the pā has', () => {
+  it('never lets the roster claim more villagers than the pā has', () => {
     const { result } = renderHook(() => useGameLoop())
 
     act(() => {
-      for (let i = 0; i < 20; i += 1) result.current.assignVillager('toa', 1)
+      for (let i = 0; i < 20; i += 1) result.current.trainVillager('toa')
     })
 
     const jobs = result.current.state.jobs

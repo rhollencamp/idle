@@ -100,10 +100,13 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
   ) {
     amount -= BIRTH_FOOD_COST
     draft.population += 1
-    // A newborn is put to the gardens rather than left idle, so growing while
-    // the player is away feeds the pā instead of adding a mouth that does
-    // nothing. Moving them is a decision the player makes on their return.
-    draft.jobs.gardener += 1
+    // A newborn holds no trade. Giving one is the player's decision and the
+    // only time it can be made, so a birth during an absence waits rather
+    // than being spent on a default — the choice keeps until they return.
+    //
+    // The queue this builds needs no cap: an untrained villager eats, so the
+    // pā's upkeep climbs with every child and `canFeedAnother` closes the
+    // loop. A pā cannot breed itself into a famine.
   }
 
   draft.resources.food = Math.min(amount, FOOD_CAP)

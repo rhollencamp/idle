@@ -43,21 +43,20 @@ export function useGameLoop() {
   }, [])
 
   /**
-   * Moves one villager into a job (`delta` of 1) or out of it (-1).
+   * Gives one untrained villager a trade, for good.
    *
-   * Villagers only ever move between a job and the unassigned pool, never
-   * directly between two jobs: taking someone off the wall to garden is two
-   * decisions, and doing it in one step would mean silently choosing whose
-   * job to empty. A move that the pā cannot cover is refused rather than
-   * clamped, so the sheet can never claim workers it does not have.
+   * There is no way back: a villager who has learned a trade keeps it, so
+   * this only ever moves someone out of the untrained pool and never between
+   * two trades. Retraining is a thing the pā may learn to do later; until
+   * then, the composition of the village is the record of every choice made
+   * at every birth. A call with nobody left to train is refused rather than
+   * clamped, so the sheet can never claim villagers that do not exist.
    */
-  const assignVillager = (job: JobKey, delta: number) => {
+  const trainVillager = (job: JobKey) => {
     setState((prev) => {
-      const next = prev.jobs[job] + delta
-      if (next < 0) return prev
-      if (delta > 0 && unassignedCount(prev) < delta) return prev
+      if (unassignedCount(prev) < 1) return prev
 
-      return { ...prev, jobs: { ...prev.jobs, [job]: next } }
+      return { ...prev, jobs: { ...prev.jobs, [job]: prev.jobs[job] + 1 } }
     })
   }
 
@@ -67,5 +66,5 @@ export function useGameLoop() {
     setState(fresh)
   }
 
-  return { state, assignVillager, resetGame }
+  return { state, trainVillager, resetGame }
 }

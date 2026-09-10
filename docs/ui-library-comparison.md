@@ -93,7 +93,7 @@ What the plan needs, and where it comes from:
 
 | Need (plan step)                   | MUI (free)                               | Bootstrap + react-bootstrap         |
 | ---------------------------------- | ---------------------------------------- | ----------------------------------- |
-| Labor split, offering share (5)    | `Slider` — marks, range, keyboard        | `FormRange` — a bare native range   |
+| Muster, offering share (step 6)    | `Slider` — marks, range, keyboard        | `FormRange` — a bare native range   |
 | Breeding policy (5)                | `ToggleButtonGroup`                      | `ToggleButtonGroup`                 |
 | Miracle cooldown ring (7)          | `CircularProgress variant="determinate"` | none — `Spinner` is indeterminate   |
 | Miracle lock/cost hints (7)        | `Tooltip`, `Badge`, `Chip`               | `OverlayTrigger`+`Tooltip`, `Badge` |
@@ -138,7 +138,7 @@ component list reads like it was written for an idle game:
 | `RingProgress`, `SemiCircleProgress`   | Miracle cooldown rings (step 7)                        |
 | `RollingNumber`                        | Counters that tick — the core visual of the app        |
 | `NumberFormatter`                      | Big-number formatting, which every idle game needs     |
-| `Slider`, `AngleSlider`                | Labor split and offering share (step 5)                |
+| `Slider`, `AngleSlider`                | Muster and offering share (step 6)                     |
 | `Timeline`                             | The Chronicle (step 10) — stable, not in a lab package |
 | `SegmentedControl`                     | Breeding policy (step 5)                               |
 | `Notification`, `Modal`, `Tooltip`     | Prayers and the update prompt (step 8, TODO)           |
@@ -235,7 +235,7 @@ down to fit:
 
 |                                           | Bootstrap         | MUI                     | Mantine                            |
 | ----------------------------------------- | ----------------- | ----------------------- | ---------------------------------- |
-| Slider for the labor split                | native range only | yes                     | yes                                |
+| Slider for the muster share               | native range only | yes                     | yes                                |
 | Determinate cooldown ring                 | hand-rolled       | `CircularProgress`      | `RingProgress`                     |
 | Chronicle timeline                        | hand-rolled       | `@mui/lab` (beta)       | stable                             |
 | Ticking-number helpers                    | none              | none                    | `RollingNumber`, `NumberFormatter` |

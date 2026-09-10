@@ -168,13 +168,18 @@ against is not reproducible here on any version of the code.
 
 Three rules the sketch above did not settle:
 
-- **Villagers move via an unassigned pool, never job-to-job.** Moving someone
-  straight from the wall to the gardens would mean silently choosing whose job
-  to empty. Two clicks, and the pool is visible while it is non-empty.
-- **A newborn is put to the gardens**, not left idle, so growing through an
-  absence feeds the pā rather than adding a mouth that does nothing.
-- **Deaths spend the unassigned first**, then come off the largest job. A lone
-  tohunga is never the one taken while a bigger job has someone to give.
+- **A trade is given once, at birth, and held for life.** Reallocation was
+  free and instant at first, which meant no decision was permanent and no
+  mistake cost anything — the interaction was pressing −/+ until the numbers
+  looked right. Now the choice arrives at the rate of births, which is the rate
+  of food surplus, so gardeners buy agency as well as food.
+- **A newborn waits** rather than taking a default trade, so a birth during an
+  absence keeps the choice instead of spending it. The queue needs no cap: the
+  untrained eat, and a birth already requires the gardens to cover the larger
+  pā.
+- **Deaths spend the untrained first, then the largest of the other trades,
+  and come for the gardeners last.** This is what keeps permanence survivable —
+  a famine that took the gardeners would leave a pā that can never gather again.
 
 Migration carries a pre-jobs save across: stores written as `{ amount,
 perSecond }` are read for their amount, `faith`/`lifetimeFaith` are read into
@@ -183,10 +188,14 @@ default roster rather than left idle.
 
 ### Step 6: Decrees
 
-- A screen to set the labor split, breeding policy, muster share, and offering
-  share.
+- A screen to set the breeding policy, muster share, and offering share. The
+  labor split is not among them: trades are given at birth and held for life,
+  so there is no split to set. `docs/mechanics.md` records a default-trade
+  decree as a future idea if children waiting turns out to grate.
 - Offerings convert surplus food to Devotion at a poor fixed rate.
-- Muster is stored now and read by the raid step later.
+- Muster is stored now and read by the raid step later. It matters more than
+  it first looked: with trades permanent, mustering is how anyone who is not a
+  toa ever contributes to defense.
 - Decrees persist in the save and apply during offline catch-up.
 
 **Done when:** a decree set before closing the tab is the one in effect on
@@ -316,7 +325,9 @@ night's raid, and the buffer is capped so the save can't grow without bound.
   (earlier warning), and workshops (gathering and weapon tiers) — replacing
   every fixed cap from the phases above.
 - Construction takes villager time and materials rather than completing
-  instantly; builders come out of the labor split.
+  instantly. Decide first where builders come from: a trade of their own, or
+  hands borrowed the way muster borrows them. There is no labor split to take
+  them out of.
 - The three branches presented as one tree, with the kaitiaki branch from step
   10 as its third column.
 

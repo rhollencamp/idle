@@ -13,6 +13,7 @@ import {
   TOA_FOOD_MULTIPLIER,
   noJobs,
 } from './village'
+import { assignedCount } from './village'
 import { SAVE_VERSION, type GameState, type JobKey } from './types'
 
 const FOOD_PER_GARDENER = JOB_YIELD.gardener!.perSecond
@@ -223,7 +224,10 @@ describe('population growth', () => {
   const oneHourMs = 60 * 60 * 1000
 
   it('grows a well-fed pā to its housing cap and holds it there', () => {
-    const grown = advanceTo(makeState(), 1000 + oneHourMs)
+    // Enough gardeners that the untrained never out-eat the gardens.
+    const state = makeState({ jobs: jobs({ gardener: 5 }) })
+
+    const grown = advanceTo(state, 1000 + oneHourMs)
     expect(grown.population).toBe(POPULATION_CAP)
 
     // Another hour with nowhere to put anyone changes nothing but the stores.
@@ -232,7 +236,7 @@ describe('population growth', () => {
     expect(later.starvation).toBe(0)
   })
 
-  it('puts a newborn to the gardens rather than leaving them idle', () => {
+  it('leaves a newborn untrained, for the player to place', () => {
     const state = makeState({
       resources: { food: BIRTH_FOOD_COST, wood: 0, stone: 0 },
     })
@@ -240,12 +244,27 @@ describe('population growth', () => {
     const next = advanceTo(state, state.lastTick + STEP_MS)
 
     expect(next.population).toBe(6)
-    expect(next.jobs.gardener).toBe(5)
-    // Growing while the player is away must not quietly add a mouth that
-    // does nothing, so everyone is still accounted for by a job.
-    expect(
-      next.population - Object.values(next.jobs).reduce((a, b) => a + b, 0),
-    ).toBe(0)
+    // The roster is untouched: a trade is given once, by the player, and a
+    // birth during an absence keeps the choice rather than spending it.
+    expect(next.jobs).toEqual(state.jobs)
+    expect(next.population - assignedCount(next.jobs)).toBe(1)
+  })
+
+  it('stops giving births once the untrained cost more than the gardens bring in', () => {
+    // Nobody trains the newborns, so each one is pure upkeep. The queue needs
+    // no cap of its own: the pā stops breeding when it can no longer feed the
+    // next mouth from what it already gathers.
+    // Two gardeners bring in 0.5/s, which covers nine mouths and no more.
+    const state = makeState({ population: 5, jobs: jobs({ gardener: 2 }) })
+
+    const settled = advanceTo(state, state.lastTick + 24 * 60 * 60 * 1000)
+
+    expect(settled.population).toBe(9)
+    expect(settled.population).toBeLessThan(POPULATION_CAP)
+    // It stopped short of the housing cap on food alone, and it never went
+    // hungry doing it — the untrained are a brake, not a famine.
+    expect(settled.jobs.gardener).toBe(2)
+    expect(settled.starvation).toBe(0)
   })
 
   it('spends food on each birth', () => {
@@ -256,7 +275,7 @@ describe('population growth', () => {
     const next = advanceTo(state, state.lastTick + STEP_MS)
 
     // The stock paid for the villager; only the step's own surplus is left,
-    // eaten into by the five who were alive to eat it. The newcomer starts
+    // eaten into by the five who were alive to eat it. The newborn starts
     // costing food from the next step.
     const surplus = 4 * FOOD_PER_GARDENER - 5 * FOOD_PER_VILLAGER
     expect(next.resources.food).toBeCloseTo(surplus, 6)
@@ -400,6 +419,22 @@ describe('starvation', () => {
     // The one gardener is never the villager starvation takes, because a
     // death comes off the largest job and they are alone in theirs.
     expect(muchLater.jobs.gardener).toBe(1)
+  })
+
+  it('eats through a warband before it touches the gardens, and recovers', () => {
+    // Trades are permanent, so a famine that took the last gardener would
+    // leave a pā that can never gather again — alive at the population floor
+    // and finished. Instead the toa go first, and the pā rights itself.
+    const state = makeFamine({ jobs: jobs({ gardener: 1, toa: 9 }) })
+
+    const settled = advanceTo(state, state.lastTick + 12 * 60 * oneMinuteMs)
+
+    expect(settled.jobs.gardener).toBe(1)
+    expect(settled.jobs.toa).toBeLessThan(9)
+    expect(settled.population).toBeGreaterThan(MIN_POPULATION)
+    // The famine ended: the survivors are being fed and are banking food.
+    expect(settled.starvation).toBe(0)
+    expect(settled.resources.food).toBeGreaterThan(0)
   })
 
   it('forgives a shortfall that ends before it costs anyone', () => {

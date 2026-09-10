@@ -1,16 +1,17 @@
 import { makeSeed } from './rng'
-import { defaultJobs } from './village'
+import { noJobs } from './village'
 import { SAVE_VERSION, type GameState } from './types'
 
 /**
 /**
- * The pā as it stands on the first morning: five villagers, three of them in
- * the gardens, a little food in the pātaka and no standing yet.
+ * The pā as it stands on the first morning: five villagers, two of them
+ * working the gardens and three young enough to still be given a trade.
  *
- * Three gardeners feed five people with room to spare, so the pā grows if the
- * player never touches it — and the margin is wide enough that reaching the
- * housing cap is not what starves it. Moving those gardeners elsewhere is how
- * a player creates scarcity, which is the point.
+ * Two gardeners feed five with room to spare, so the pā is not on a clock
+ * while the player decides — an opening that starved you for thinking would
+ * be a poor first impression. The three untrained are the first decision the
+ * game asks for, and the only kind it will ever ask: a trade is given once,
+ * at birth, and held for life.
  */
 export function createInitialState(now: number = Date.now()): GameState {
   return {
@@ -19,7 +20,7 @@ export function createInitialState(now: number = Date.now()): GameState {
     devotion: 0,
     mana: 0,
     population: 5,
-    jobs: defaultJobs(5),
+    jobs: { ...noJobs(), gardener: 2 },
     starvation: 0,
     seed: makeSeed(now),
     step: 0,

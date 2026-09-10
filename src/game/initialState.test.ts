@@ -12,8 +12,10 @@ describe('createInitialState', () => {
     expect(state.devotion).toBe(0)
     expect(state.mana).toBe(0)
     expect(state.population).toBeGreaterThan(0)
-    // Everyone starts with something to do; nobody starts idle.
-    expect(assignedCount(state.jobs)).toBe(state.population)
+    // Two are already in the gardens and the rest are children waiting for a
+    // trade — the game opens on its first and only kind of decision.
+    expect(state.jobs.gardener).toBe(2)
+    expect(state.population - assignedCount(state.jobs)).toBe(3)
     expect(state.lastTick).toBeGreaterThanOrEqual(before)
     expect(state.step).toBe(0)
     expect(Number.isFinite(state.seed)).toBe(true)

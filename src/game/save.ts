@@ -147,3 +147,25 @@ export function saveState(state: GameState): void {
 export function clearSave(): void {
   localStorage.removeItem(SAVE_KEY)
 }
+
+/**
+ * The save as text the player can keep. Deliberately the same JSON `saveState`
+ * writes, pretty-printed: an export is a copy of the save, not a second format
+ * that would need its own migration path.
+ */
+export function serializeSave(state: GameState): string {
+  return JSON.stringify(state, null, 2)
+}
+
+/**
+ * Reads back what `serializeSave` wrote, or `null` if the text is not a save
+ * this build can use. Goes through `migrate`, so an imported file gets the
+ * same repairs and the same rejections as one loaded from storage.
+ */
+export function parseSave(text: string): GameState | null {
+  try {
+    return migrate(JSON.parse(text))
+  } catch {
+    return null
+  }
+}

@@ -50,5 +50,7 @@ The app icon is [Crab](https://game-icons.net/lorc/originals/crab.html) by
 **Lorc**, from [game-icons.net](https://game-icons.net), used under
 [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and recoloured to the
 app's palette. `public/favicon.svg` is the source; the PNGs beside it are
-rendered from it, including a maskable variant whose artwork is scaled to sit
-inside Android's safe zone.
+rendered from it by `npm run icons`. The favicon keeps its full bleed, but every
+other surface rounds or masks the square, so each PNG insets the artwork: 78% of
+the width for the home-screen icons, 66% for the maskable variant, which has to
+sit inside Android's safe-zone circle.

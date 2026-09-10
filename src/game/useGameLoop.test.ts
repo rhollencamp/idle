@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createInitialState } from './initialState'
 import { loadState } from './save'
 import { useGameLoop } from './useGameLoop'
 
@@ -105,5 +106,28 @@ describe('useGameLoop', () => {
     const jobs = result.current.state.jobs
     const assigned = Object.values(jobs).reduce((a, b) => a + b, 0)
     expect(assigned).toBeLessThanOrEqual(result.current.state.population)
+  })
+
+  it('importGame adopts the given state, catches it up, and saves it', () => {
+    const { result } = renderHook(() => useGameLoop())
+
+    const base = createInitialState()
+    const imported = {
+      ...base,
+      // Someone has to be keeping the karakia, or there is no income for the
+      // catch-up to pay out and the test would prove nothing.
+      jobs: { ...base.jobs, tohunga: 1 },
+      mana: 250,
+      lastTick: Date.now() - 10_000,
+    }
+
+    act(() => {
+      result.current.importGame(imported)
+    })
+
+    // The ten seconds since the export was written are paid out on the way in,
+    // so the imported figure is the floor rather than the exact value.
+    expect(result.current.state.mana).toBeGreaterThan(250)
+    expect(loadState().mana).toBe(result.current.state.mana)
   })
 })

@@ -125,9 +125,11 @@ belongs with the jobs step rather than half-done here.
 
 The icons are the crab from game-icons.net, recoloured to the app's accent and
 rendered into the set the manifest expects. `public/favicon.svg` is the source
-of truth; the maskable variant scales the artwork to fit Android's safe zone,
-measured from the path's real bounding box rather than guessed. Attribution
-(CC BY 3.0) is in the README.
+of truth and `npm run icons` (`scripts/generate-icons.mjs`) renders the PNGs
+from it, measuring the artwork's real bounding box rather than guessing at it.
+Each output insets the artwork by its own amount, since the square is rounded
+or masked everywhere except a browser tab. Attribution (CC BY 3.0) is in the
+README.
 
 ### Step 5: Jobs and Devotion income ✅
 

@@ -39,7 +39,9 @@
   border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
-.app-footer {
-  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
-  text-align: center;
+/* The home-indicator gutter on an installed iOS PWA. A bare spacer rather
+   than padding on the main container, so a scrolling page still ends flush
+   against the bottom of the safe area. */
+.app-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

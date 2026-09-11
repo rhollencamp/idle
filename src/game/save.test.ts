@@ -159,6 +159,22 @@ describe('migrate', () => {
     expect(migrate(preSeed)?.seed).toBe(migrated?.seed)
   })
 
+  it('starts the tally of births and deaths at zero for an older save', () => {
+    const { births: _births, deaths: _deaths, ...preTally } = makeState()
+
+    const migrated = migrate(preTally)
+
+    expect(migrated?.births).toBe(0)
+    expect(migrated?.deaths).toBe(0)
+  })
+
+  it('keeps a stored tally of births and deaths', () => {
+    const state = makeState({ births: 9, deaths: 4 })
+
+    expect(migrate(state)?.births).toBe(9)
+    expect(migrate(state)?.deaths).toBe(4)
+  })
+
   it('keeps a stored seed and step rather than resetting them', () => {
     const state = makeState({ seed: 777, step: 42 })
 

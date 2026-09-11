@@ -116,6 +116,10 @@ export function migrate(raw: unknown): GameState | null {
     devotion,
     mana,
     population,
+    // A save from before the pā counted its dead has no history to recover,
+    // so it starts keeping one from here rather than being discarded.
+    births: readAmount(state.births) ?? 0,
+    deaths: readAmount(state.deaths) ?? 0,
     jobs: readJobs(state.jobs, population),
     starvation: readAmount(state.starvation) ?? 0,
     // `seed` and `step` arrived after the first saves were written, so default

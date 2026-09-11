@@ -69,6 +69,7 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
     )
     if (deaths > 0) {
       draft.population -= deaths
+      draft.deaths += deaths
       draft.starvation -= deaths
       // The dead were holding jobs; the sheet has to give them up or every
       // rate read off it afterwards would count workers who are gone.
@@ -100,6 +101,7 @@ function simulateVillage(draft: GameState, dtSeconds: number): void {
   ) {
     amount -= BIRTH_FOOD_COST
     draft.population += 1
+    draft.births += 1
     // A newborn holds no trade. Giving one is the player's decision and the
     // only time it can be made, so a birth during an absence waits rather
     // than being spent on a default — the choice keeps until they return.

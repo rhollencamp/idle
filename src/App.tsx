@@ -3,6 +3,7 @@ import { Container, MantineProvider } from '@mantine/core'
 import { useGameLoop } from './game/useGameLoop'
 import { AppHeader } from './ui/AppHeader'
 import { NavDrawer } from './ui/NavDrawer'
+import { ReturnSummary } from './ui/ReturnSummary'
 import { AboutView } from './ui/AboutView'
 import { SaveView } from './ui/SaveView'
 import { SettingsView } from './ui/SettingsView'
@@ -13,7 +14,14 @@ import { usePwaUpdate } from './usePwaUpdate'
 import { theme } from './theme'
 
 function App() {
-  const { state, trainVillager, resetGame, importGame } = useGameLoop()
+  const {
+    state,
+    summary,
+    trainVillager,
+    dismissSummary,
+    resetGame,
+    importGame,
+  } = useGameLoop()
   const [view, setView] = useState<View>('village')
   const [menuOpened, setMenuOpened] = useState(false)
   const updateReady = usePwaUpdate()
@@ -23,6 +31,12 @@ function App() {
     setMenuOpened(false)
   }
 
+  // The report is read against the photograph alone: the pā it describes is
+  // not on screen behind it. A dialog over the live screen invites reading the
+  // two against each other — and the numbers behind it are already moving on,
+  // which is precisely the comparison that misleads.
+  const resuming = summary !== null
+
   return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
       <div className="app-shell">
@@ -30,44 +44,54 @@ function App() {
             decorative, so it is hidden from assistive technology. */}
         <div className="app-backdrop" aria-hidden="true" />
 
-        <AppHeader
-          title={viewTitle(view)}
-          menuOpened={menuOpened}
-          onToggleMenu={() => setMenuOpened((opened) => !opened)}
-          menuAttention={updateReady}
-        />
+        <ReturnSummary summary={summary} onDismiss={dismissSummary} />
 
-        <NavDrawer
-          opened={menuOpened}
-          view={view}
-          onSelect={openView}
-          onClose={() => setMenuOpened(false)}
-          updateReady={updateReady}
-          onUpdate={() => {
-            setMenuOpened(false)
-            void applyPwaUpdate()
-          }}
-        />
+        {!resuming && (
+          <>
+            <AppHeader
+              title={viewTitle(view)}
+              menuOpened={menuOpened}
+              onToggleMenu={() => setMenuOpened((opened) => !opened)}
+              menuAttention={updateReady}
+            />
 
-        <Container
-          component="main"
-          className="app-main"
-          size="sm"
-          py="lg"
-          flex={1}
-          w="100%"
-        >
-          {view === 'village' && (
-            <VillageView state={state} onTrain={trainVillager} />
-          )}
-          {view === 'settings' && <SettingsView />}
-          {view === 'save' && (
-            <SaveView state={state} onImport={importGame} onReset={resetGame} />
-          )}
-          {view === 'about' && <AboutView />}
-        </Container>
+            <NavDrawer
+              opened={menuOpened}
+              view={view}
+              onSelect={openView}
+              onClose={() => setMenuOpened(false)}
+              updateReady={updateReady}
+              onUpdate={() => {
+                setMenuOpened(false)
+                void applyPwaUpdate()
+              }}
+            />
 
-        <div className="app-safe-bottom" />
+            <Container
+              component="main"
+              className="app-main"
+              size="sm"
+              py="lg"
+              flex={1}
+              w="100%"
+            >
+              {view === 'village' && (
+                <VillageView state={state} onTrain={trainVillager} />
+              )}
+              {view === 'settings' && <SettingsView />}
+              {view === 'save' && (
+                <SaveView
+                  state={state}
+                  onImport={importGame}
+                  onReset={resetGame}
+                />
+              )}
+              {view === 'about' && <AboutView />}
+            </Container>
+
+            <div className="app-safe-bottom" />
+          </>
+        )}
       </div>
     </MantineProvider>
   )

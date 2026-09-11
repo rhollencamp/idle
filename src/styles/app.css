@@ -54,6 +54,14 @@
 .app-backdrop {
   position: fixed;
   inset: 0;
+  /* `inset: 0` on a fixed element resolves against the viewport as it stands
+     with the browser's retractable chrome shown, so when that chrome hides —
+     which is what an open dialog's scroll lock provokes on iOS — the
+     photograph stops short of the bottom of the screen and the page's own
+     background shows through as a bare strip. Anchoring it to the largest the
+     viewport can get spills the image behind that chrome instead, which costs
+     nothing: it is a `cover` background with no edge worth protecting. */
+  min-height: 100lvh;
   background: url('../assets/backdrop-sand.avif') center / cover no-repeat;
   filter: var(--app-backdrop-filter);
 }

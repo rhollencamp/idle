@@ -8,12 +8,15 @@ import { SaveView } from './ui/SaveView'
 import { SettingsView } from './ui/SettingsView'
 import { VillageView } from './ui/VillageView'
 import { viewTitle, type View } from './ui/navigation'
+import { applyPwaUpdate } from './pwaUpdate'
+import { usePwaUpdate } from './usePwaUpdate'
 import { theme } from './theme'
 
 function App() {
   const { state, trainVillager, resetGame, importGame } = useGameLoop()
   const [view, setView] = useState<View>('village')
   const [menuOpened, setMenuOpened] = useState(false)
+  const updateReady = usePwaUpdate()
 
   const openView = (next: View) => {
     setView(next)
@@ -31,6 +34,7 @@ function App() {
           title={viewTitle(view)}
           menuOpened={menuOpened}
           onToggleMenu={() => setMenuOpened((opened) => !opened)}
+          menuAttention={updateReady}
         />
 
         <NavDrawer
@@ -38,6 +42,11 @@ function App() {
           view={view}
           onSelect={openView}
           onClose={() => setMenuOpened(false)}
+          updateReady={updateReady}
+          onUpdate={() => {
+            setMenuOpened(false)
+            void applyPwaUpdate()
+          }}
         />
 
         <Container

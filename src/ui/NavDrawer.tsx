@@ -1,4 +1,4 @@
-import { Drawer, NavLink, Stack } from '@mantine/core'
+import { Divider, Drawer, NavLink, Stack } from '@mantine/core'
 import { VIEWS, type View } from './navigation'
 
 interface NavDrawerProps {
@@ -6,9 +6,19 @@ interface NavDrawerProps {
   view: View
   onSelect: (view: View) => void
   onClose: () => void
+  /** Whether a new version is installed and waiting to take over. */
+  updateReady?: boolean
+  onUpdate?: () => void
 }
 
-export function NavDrawer({ opened, view, onSelect, onClose }: NavDrawerProps) {
+export function NavDrawer({
+  opened,
+  view,
+  onSelect,
+  onClose,
+  updateReady = false,
+  onUpdate,
+}: NavDrawerProps) {
   return (
     <Drawer
       opened={opened}
@@ -31,6 +41,20 @@ export function NavDrawer({ opened, view, onSelect, onClose }: NavDrawerProps) {
             onClick={() => onSelect(entry.key)}
           />
         ))}
+
+        {/* Only present while a new version waits, below the views it is not
+            one of: this reloads the app rather than switching screens. */}
+        {updateReady && (
+          <>
+            <Divider my="xs" />
+            <NavLink
+              component="button"
+              label="Update available"
+              description="Restart to install"
+              onClick={onUpdate}
+            />
+          </>
+        )}
       </Stack>
     </Drawer>
   )

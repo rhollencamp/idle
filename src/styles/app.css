@@ -54,14 +54,18 @@
 .app-backdrop {
   position: fixed;
   inset: 0;
-  /* `inset: 0` on a fixed element resolves against the viewport as it stands
-     with the browser's retractable chrome shown, so when that chrome hides —
-     which is what an open dialog's scroll lock provokes on iOS — the
-     photograph stops short of the bottom of the screen and the page's own
-     background shows through as a bare strip. Anchoring it to the largest the
-     viewport can get spills the image behind that chrome instead, which costs
-     nothing: it is a `cover` background with no edge worth protecting. */
-  min-height: 100lvh;
+  /* An installed iOS PWA on `black-translucent` draws behind the status bar
+     but reports a viewport that is still short by exactly its height, and
+     anchors the document to the top — so every viewport unit, `lvh` included,
+     falls a status bar short of the screen and leaves the page's own
+     background showing as a bare strip along the bottom. The documented
+     workaround is to add the top inset back, which in that mode is the height
+     of the very bar the document was shifted out from under.
+
+     Spilling the photograph past the bottom costs nothing anywhere else: it
+     is a `cover` background with no edge worth protecting, and the inset is
+     zero on any device without the notch to report. */
+  min-height: calc(100lvh + env(safe-area-inset-top));
   background: url('../assets/backdrop-sand.avif') center / cover no-repeat;
   filter: var(--app-backdrop-filter);
 }

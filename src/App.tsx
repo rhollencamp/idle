@@ -31,53 +31,67 @@ function App() {
     setMenuOpened(false)
   }
 
+  // The report is read against the photograph alone: the pā it describes is
+  // not on screen behind it. A dialog over the live screen invites reading the
+  // two against each other — and the numbers behind it are already moving on,
+  // which is precisely the comparison that misleads.
+  const resuming = summary !== null
+
   return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
-      <ReturnSummary summary={summary} onDismiss={dismissSummary} />
-
       <div className="app-shell">
         {/* A photograph of wet sand, fixed behind the scrolling cards. Purely
             decorative, so it is hidden from assistive technology. */}
         <div className="app-backdrop" aria-hidden="true" />
 
-        <AppHeader
-          title={viewTitle(view)}
-          menuOpened={menuOpened}
-          onToggleMenu={() => setMenuOpened((opened) => !opened)}
-          menuAttention={updateReady}
-        />
+        <ReturnSummary summary={summary} onDismiss={dismissSummary} />
 
-        <NavDrawer
-          opened={menuOpened}
-          view={view}
-          onSelect={openView}
-          onClose={() => setMenuOpened(false)}
-          updateReady={updateReady}
-          onUpdate={() => {
-            setMenuOpened(false)
-            void applyPwaUpdate()
-          }}
-        />
+        {!resuming && (
+          <>
+            <AppHeader
+              title={viewTitle(view)}
+              menuOpened={menuOpened}
+              onToggleMenu={() => setMenuOpened((opened) => !opened)}
+              menuAttention={updateReady}
+            />
 
-        <Container
-          component="main"
-          className="app-main"
-          size="sm"
-          py="lg"
-          flex={1}
-          w="100%"
-        >
-          {view === 'village' && (
-            <VillageView state={state} onTrain={trainVillager} />
-          )}
-          {view === 'settings' && <SettingsView />}
-          {view === 'save' && (
-            <SaveView state={state} onImport={importGame} onReset={resetGame} />
-          )}
-          {view === 'about' && <AboutView />}
-        </Container>
+            <NavDrawer
+              opened={menuOpened}
+              view={view}
+              onSelect={openView}
+              onClose={() => setMenuOpened(false)}
+              updateReady={updateReady}
+              onUpdate={() => {
+                setMenuOpened(false)
+                void applyPwaUpdate()
+              }}
+            />
 
-        <div className="app-safe-bottom" />
+            <Container
+              component="main"
+              className="app-main"
+              size="sm"
+              py="lg"
+              flex={1}
+              w="100%"
+            >
+              {view === 'village' && (
+                <VillageView state={state} onTrain={trainVillager} />
+              )}
+              {view === 'settings' && <SettingsView />}
+              {view === 'save' && (
+                <SaveView
+                  state={state}
+                  onImport={importGame}
+                  onReset={resetGame}
+                />
+              )}
+              {view === 'about' && <AboutView />}
+            </Container>
+
+            <div className="app-safe-bottom" />
+          </>
+        )}
       </div>
     </MantineProvider>
   )

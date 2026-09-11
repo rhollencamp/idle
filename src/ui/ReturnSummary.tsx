@@ -10,13 +10,18 @@ const RESOURCE_LABELS: Record<ResourceKey, string> = {
   stone: 'Stone',
 }
 
-/** A signed figure, so a pātaka that drained reads as one. */
-function signed(value: number, digits = 0): string {
-  // Rounded before its sign is read, so a change that displays as nothing is
-  // not shown as "-0.0" on the strength of a float's last bit.
-  const rounded = Number(value.toFixed(digits)) || 0
+/**
+ * A signed whole figure, so a pātaka that drained reads as one.
+ *
+ * Whole numbers throughout: this is an account of a night, not a readout, and
+ * the tenth of a unit that matters on a live rate badge is noise in a figure
+ * measured in thousands. Rounded before its sign is read, so a change that
+ * comes to nothing is not shown as "-0".
+ */
+function signed(value: number): string {
+  const rounded = Math.round(value) || 0
 
-  return `${rounded > 0 ? '+' : ''}${rounded.toFixed(digits)}`
+  return `${rounded > 0 ? '+' : ''}${rounded}`
 }
 
 function Line({
@@ -63,6 +68,10 @@ export function ReturnSummary({
       centered
       fullScreen={fullScreen}
       withCloseButton={false}
+      // The pā is hidden behind this (`App` renders the report alone), so the
+      // overlay only has to hold the dialog off the photograph, not dim a
+      // screen full of cards.
+      overlayProps={{ backgroundOpacity: 0.2 }}
     >
       {summary && (
         <Stack gap="sm">
@@ -86,12 +95,12 @@ export function ReturnSummary({
               color={summary.deaths > 0 ? 'red' : undefined}
             />
             <Line label="Villagers" value={`${summary.population}`} />
-            <Line label="Devotion earned" value={signed(summary.devotion, 1)} />
+            <Line label="Devotion earned" value={signed(summary.devotion)} />
             {(Object.keys(RESOURCE_LABELS) as ResourceKey[]).map((key) => (
               <Line
                 key={key}
                 label={RESOURCE_LABELS[key]}
-                value={signed(summary.resources[key], 1)}
+                value={signed(summary.resources[key])}
                 color={summary.resources[key] < 0 ? 'red' : undefined}
               />
             ))}

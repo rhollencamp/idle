@@ -82,7 +82,14 @@ one starvation death per 60s of unmet need, population floor of 1.
 
 ## Jobs
 
-The player sets the split as a standing order; it persists while offline.
+**A trade is given once, at birth, and held for life.** There is no
+reassigning: a villager who learned to garden gardens until they die. What the
+player chooses is what each newborn becomes, and the composition of the pā is
+the record of every one of those choices.
+
+That is the whole shape of the decision. It is cheap to make and expensive to
+get wrong, it arrives at the rate of births — which is the rate of food surplus
+— and it means gardeners buy you agency as well as food.
 
 | Job            | Produces                                              |
 | -------------- | ----------------------------------------------------- |
@@ -92,8 +99,22 @@ The player sets the split as a standing order; it persists while offline.
 | **Toa**        | Nothing. Fights during a wave and eats more than most |
 | **Tohunga**    | Devotion, by keeping the karakia at the shrine        |
 
-Births and deaths have to rebalance the split without dropping or duplicating
-anyone, since the split is stored as counts that sum to the population.
+Newborns hold no trade and wait. A birth during an absence keeps the choice
+rather than spending it on a default, so a player who has been away comes back
+to children needing trades — a reason to check in that pays out rather than
+punishing.
+
+The queue needs no cap of its own. An untrained villager eats, so every child
+raises the pā's upkeep, and a birth already requires the gardens to cover the
+larger village. A pā cannot breed itself into a famine.
+
+**Starvation takes the untrained first, then the largest of the other trades,
+and comes for the gardeners last.** This is the rule that keeps permanence
+survivable: a famine that took the gardeners would leave a pā that can never
+gather again, alive at the population floor and finished. Taking the others
+first means a starving pā trends toward being all gardeners, so the famine ends
+itself — and a warband you cannot feed erodes, which is the tension the design
+wants.
 
 ## The sea
 
@@ -153,9 +174,9 @@ no rung below the floor.
 Standing orders. Cheap to change, delayed payoff — the reason to check in
 without being a demand.
 
-- **Labor split** — how the population divides across the five jobs.
-- **Breeding** — encourage / neutral / forbid. Encourage raises birth rate and
-  the food cost per birth; forbid halts growth to bank food.
+- **Breeding** — encourage / neutral / forbid.
+  Encourage raises birth rate and the food cost per birth; forbid halts growth
+  to bank food.
 - **Muster** — what share of the pā drops its tools and takes up arms when a
   wave lands. Lets you run a lean standing guard and still meet a raid in
   numbers, at the cost of everything they would have gathered.
@@ -234,7 +255,9 @@ work:
 - **The kaitiaki** (Devotion) — blessings, as above, tiered by Mana.
 
 Buildings are built by villagers over time using materials, not bought
-instantly. Construction comes out of the labor split like any other job.
+instantly. Who does the building is an open question now that trades are for
+life: either a builder is a trade like any other, or construction borrows hands
+the way muster does. Settle it when buildings are built (step 14).
 
 ## Petitions
 
@@ -322,6 +345,17 @@ first one noticeably sooner.
 ## Future ideas
 
 Deliberately not in the plan. Recorded so we stop re-litigating them.
+
+- **Retraining** — a whare wānanga, or a blessing from the kaitiaki, that lets
+  a villager learn a second trade at a cost in time and food. It would take the
+  edge off a bad early choice without giving back free reallocation, and it is
+  the obvious first concrete payoff for the atua branch. Worth adding only once
+  we know whether permanence actually grates in play.
+- **A default trade for children born while you are away** — a standing order
+  saying what to do with a newborn when nobody is watching. Friendlier, but it
+  spends the choice the absence was saving for you. Add it if waiting grates.
+- **Children who take time to grow** — a newborn who cannot be given a trade
+  for some minutes. More faithful, more friction.
 
 - **Individually simulated villagers** — names, whakapapa, whānau, a villager
   the player actually knows dying on the wall. Enormously expensive, and the

@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Badge,
   Card,
   Divider,
@@ -7,16 +8,21 @@ import {
   Stack,
   Text,
 } from '@mantine/core'
-import { projectAmount, projectedGain, projectFood } from '../game/projection'
+import { projectAmount, projectFood, projectedGain } from '../game/projection'
 import {
   BIRTH_FOOD_COST,
   FOOD_CAP,
+  JOB_KEYS,
+  JOB_YIELD,
   POPULATION_CAP,
   canFeedAnother,
+  devotionPerSecond,
   foodUpkeepPerSecond,
+  gatherRates,
   netFoodPerSecond,
+  unassignedCount,
 } from '../game/village'
-import type { GameState, ResourceKey } from '../game/types'
+import type { GameState, JobKey, ResourceKey } from '../game/types'
 import { useRenderClock } from '../useRenderClock'
 
 const RESOURCE_LABELS: Record<ResourceKey, string> = {
@@ -25,38 +31,65 @@ const RESOURCE_LABELS: Record<ResourceKey, string> = {
   stone: 'Stone',
 }
 
-export function VillageView({ state }: { state: GameState }) {
+const JOB_NAMES: Record<JobKey, string> = {
+  gardener: 'Gardeners',
+  woodcutter: 'Woodcutters',
+  quarrier: 'Quarriers',
+  toa: 'Toa',
+  tohunga: 'Tohunga',
+}
+
+export function VillageView({
+  state,
+  onTrain,
+}: {
+  state: GameState
+  onTrain: (job: JobKey) => void
+}) {
   // The sim advances in whole seconds; this fills in the fraction between
   // steps so the numbers glide instead of stepping.
   const now = useRenderClock()
 
-  const gathered = (['wood', 'stone'] as const).map(
-    (key) => [key, state.resources[key]] as const,
+  const rates = gatherRates(state)
+  const devotionRate = devotionPerSecond(state)
+  const devotion = projectAmount(
+    state.devotion,
+    devotionRate,
+    state.lastTick,
+    now,
   )
+  const mana = state.mana + projectedGain(devotionRate, state.lastTick, now)
+  // Whole points once there are enough to count; a decimal before that, so a
+  // pā that has just started earning does not read as having earned nothing.
+  const manaLabel = mana < 10 ? mana.toFixed(1) : mana.toFixed(0)
+
+  /** What a trade is contributing right now — the number the choice turns on. */
+  const tradeOutput = (job: JobKey): string => {
+    if (job === 'toa') return 'Holds the wall. Eats more than the rest.'
+
+    const perSecond =
+      job === 'tohunga' ? devotionRate : rates[JOB_YIELD[job]!.resource]
+    const label =
+      job === 'tohunga' ? 'Devotion' : RESOURCE_LABELS[JOB_YIELD[job]!.resource]
+
+    return `${label} +${perSecond.toFixed(2)}/s`
+  }
 
   const food = projectFood(state, now)
   // Rounded before its sign is read, so a rate that displays as zero is not
   // shown as a red "-0.00/s" on the strength of a float's last bit.
   const netFood = Number(netFoodPerSecond(state).toFixed(2)) || 0
+  const untrained = unassignedCount(state)
   const starving = state.starvation > 0
   const hasHousing = state.population < POPULATION_CAP
   // Growing needs somewhere to put the newcomer and the food to keep feeding
   // them, which is the same pair of questions the sim asks before a birth.
   const canGrow = hasHousing && canFeedAnother(state)
-  // What the village is working toward: another villager when one is coming,
-  // and otherwise a fuller granary.
+  // What the pā is working toward: another villager when one is coming, and
+  // otherwise a fuller pātaka.
   const villageProgress = canGrow
     ? (Math.min(food, BIRTH_FOOD_COST) / BIRTH_FOOD_COST) * 100
     : (food / FOOD_CAP) * 100
-
-  const faith = projectAmount(state.faith, state.lastTick, now)
-  const lifetimeFaith =
-    state.lifetimeFaith +
-    projectedGain(state.faith.perSecond, state.lastTick, now)
-
-  // Fill the bar with progress toward the next whole unit, so an idle screen
-  // still visibly ticks.
-  const faithProgress = (faith % 1) * 100
 
   return (
     <Stack gap="md">
@@ -66,24 +99,26 @@ export function VillageView({ state }: { state: GameState }) {
 
       <Card withBorder padding={0}>
         <Text fw={600} p="sm">
-          Faith
+          Devotion
         </Text>
         <Divider />
         <Stack gap="xs" p="sm">
           <Group justify="space-between" align="baseline" wrap="nowrap">
             <Text size="xl" ff="monospace">
-              {faith.toFixed(1)}
+              {devotion.toFixed(1)}
             </Text>
-            <Badge ff="monospace">+{state.faith.perSecond.toFixed(1)}/s</Badge>
+            <Badge ff="monospace">+{devotionRate.toFixed(2)}/s</Badge>
           </Group>
           <Progress.Root>
             <Progress.Section
-              value={faithProgress}
-              aria-label="Faith progress toward the next point"
+              value={(devotion % 1) * 100}
+              aria-label="Devotion toward the next point"
             />
           </Progress.Root>
           <Text size="sm" c="dimmed">
-            {lifetimeFaith.toFixed(0)} faith earned in all
+            {devotionRate > 0
+              ? `${manaLabel} mana — the standing of your pā`
+              : 'No one keeps the karakia. Raise a child to the shrine.'}
           </Text>
         </Stack>
       </Card>
@@ -126,10 +161,53 @@ export function VillageView({ state }: { state: GameState }) {
                   : 'Every house is full.'}
           </Text>
           <Text size="sm" c="dimmed">
-            They eat {foodUpkeepPerSecond(state.population).toFixed(2)}
-            /s between them.
+            They eat {foodUpkeepPerSecond(state).toFixed(2)}/s between them.
           </Text>
         </Stack>
+      </Card>
+
+      <Card withBorder padding={0}>
+        <Group justify="space-between" align="center" p="sm">
+          <Text fw={600}>Trades</Text>
+          {untrained > 0 && (
+            <Badge color="yellow" variant="light">
+              {untrained} without a trade
+            </Badge>
+          )}
+        </Group>
+        {JOB_KEYS.map((job) => (
+          <div key={job}>
+            <Divider />
+            <Group justify="space-between" align="center" p="sm" wrap="nowrap">
+              <div>
+                <Text fw={600}>{JOB_NAMES[job]}</Text>
+                <Text size="sm" c="dimmed">
+                  {tradeOutput(job)}
+                </Text>
+              </div>
+              <Group gap="xs" wrap="nowrap">
+                <Text ff="monospace" w={24} ta="center">
+                  {state.jobs[job]}
+                </Text>
+                <ActionIcon
+                  variant="default"
+                  radius="xl"
+                  disabled={untrained === 0}
+                  onClick={() => onTrain(job)}
+                  aria-label={`Raise a child to ${JOB_NAMES[job]}`}
+                >
+                  +
+                </ActionIcon>
+              </Group>
+            </Group>
+          </div>
+        ))}
+        <Divider />
+        <Text size="sm" c="dimmed" p="sm">
+          {untrained > 0
+            ? 'Give each child a trade. They will hold it for life.'
+            : 'Everyone has a trade. Your next choice arrives with the next birth.'}
+        </Text>
       </Card>
 
       <Card withBorder padding={0}>
@@ -159,9 +237,13 @@ export function VillageView({ state }: { state: GameState }) {
           </Group>
         </Stack>
 
-        {gathered.map(([key, resource]) => {
-          const amount = projectAmount(resource, state.lastTick, now)
-          const progress = (amount % 1) * 100
+        {(['wood', 'stone'] as const).map((key) => {
+          const amount = projectAmount(
+            state.resources[key],
+            rates[key],
+            state.lastTick,
+            now,
+          )
 
           return (
             <div key={key}>
@@ -174,13 +256,11 @@ export function VillageView({ state }: { state: GameState }) {
                 <Group gap="xs" wrap="nowrap">
                   <Progress.Root flex={1}>
                     <Progress.Section
-                      value={progress}
+                      value={(amount % 1) * 100}
                       aria-label={`${RESOURCE_LABELS[key]} progress toward the next unit`}
                     />
                   </Progress.Root>
-                  <Badge ff="monospace">
-                    +{resource.perSecond.toFixed(1)}/s
-                  </Badge>
+                  <Badge ff="monospace">+{rates[key].toFixed(2)}/s</Badge>
                 </Group>
               </Stack>
             </div>

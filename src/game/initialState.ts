@@ -1,27 +1,26 @@
 import { makeSeed } from './rng'
+import { noJobs } from './village'
 import { SAVE_VERSION, type GameState } from './types'
 
 /**
- * The starting village. The `perSecond` rates are fixed placeholders — from
- * step 4 onward they become derived from job assignments rather than stored.
+/**
+ * The pā as it stands on the first morning: five villagers, two of them
+ * working the gardens and three young enough to still be given a trade.
  *
- * Food's yield is set clear of what five villagers eat, and clear again of
- * what a full ten eat, so the starting village grows to its housing cap and
- * then keeps a surplus. A yield that merely tied the upkeep at the cap would
- * leave the granary balanced on a knife edge, one rounding error away from
- * reading as a famine.
+ * Two gardeners feed five with room to spare, so the pā is not on a clock
+ * while the player decides — an opening that starved you for thinking would
+ * be a poor first impression. The three untrained are the first decision the
+ * game asks for, and the only kind it will ever ask: a trade is given once,
+ * at birth, and held for life.
  */
 export function createInitialState(now: number = Date.now()): GameState {
   return {
     version: SAVE_VERSION,
-    resources: {
-      food: { amount: 20, perSecond: 0.8 },
-      wood: { amount: 0, perSecond: 0.2 },
-      stone: { amount: 0, perSecond: 0.1 },
-    },
-    faith: { amount: 0, perSecond: 0.5 },
-    lifetimeFaith: 0,
+    resources: { food: 20, wood: 0, stone: 0 },
+    devotion: 0,
+    mana: 0,
     population: 5,
+    jobs: { ...noJobs(), gardener: 2 },
     starvation: 0,
     seed: makeSeed(now),
     step: 0,

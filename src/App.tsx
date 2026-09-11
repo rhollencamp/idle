@@ -11,7 +11,7 @@ import { viewTitle, type View } from './ui/navigation'
 import { theme } from './theme'
 
 function App() {
-  const { state, resetGame, importGame } = useGameLoop()
+  const { state, trainVillager, resetGame, importGame } = useGameLoop()
   const [view, setView] = useState<View>('village')
   const [menuOpened, setMenuOpened] = useState(false)
 
@@ -37,7 +37,9 @@ function App() {
         />
 
         <Container component="main" size="sm" py="lg" flex={1} w="100%">
-          {view === 'village' && <VillageView state={state} />}
+          {view === 'village' && (
+            <VillageView state={state} onTrain={trainVillager} />
+          )}
           {view === 'settings' && <SettingsView />}
           {view === 'save' && (
             <SaveView state={state} onImport={importGame} onReset={resetGame} />

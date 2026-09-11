@@ -52,8 +52,8 @@ are a coupled feedback loop, so it had to become an integrator.
 well under a second.
 
 Landed with `STEP_MS = 1000` and `MAX_STEPS_PER_ADVANCE = 345_600` — four days
-at full resolution, measured at ~10ms, with anything longer resolving in wider
-buckets at the same cost. The step is the UI's resolution too unless the
+at full resolution, with anything longer resolving in wider buckets at the same
+cost. The step is the UI's resolution too unless the
 display interpolates, which it now does (`projection.ts`), leaving `STEP_MS`
 free to be chosen for the model alone. Revisit the budget against measured
 coarse-vs-fine divergence, not against a target absence length.
@@ -131,7 +131,7 @@ Each output insets the artwork by its own amount, since the square is rounded
 or masked everywhere except a browser tab. Attribution (CC BY 3.0) is in the
 README.
 
-### Step 5: Jobs and Devotion income
+### Step 5: Jobs and Devotion income ✅
 
 - Job assignment as counts that sum to population: gardener, woodcutter,
   quarrier, toa, tohunga.
@@ -149,12 +149,55 @@ show as a food cost with no yield, and reassignment is handled correctly when
 population changes — births and deaths rebalance without dropping or duplicating
 villagers.
 
+Landed, and the game is interactive for the first time: a Work card moves
+villagers with −/+ and the rates answer immediately. Yields are 0.25 food per
+gardener, 0.15 wood, 0.1 stone, 0.1 Devotion per tohunga, against 0.05 food
+eaten per villager and 1.5× that for a toa.
+
+Rates stopped being stored. `resources` holds amounts only and every rate is
+derived from `state.jobs`, because a stored rate would leave the screen and the
+save disagreeing for up to a second after a reassignment.
+
+That made the tick allocation-sensitive, and the perf guard earned its keep by
+catching it. Measured on the build container, a 30-day catch-up costs 37ms on
+the pre-jobs engine and 275ms once rates were built into an object per step;
+reading the rates directly and flattening the yield table brings it to ~95ms.
+The remaining 2.5× is the step genuinely doing more, and 95ms of one-time work
+on a return after a month is not worth chasing further. The guard was moved to
+600ms, since at 150ms it sat close enough to the real figure to trip on a busy
+runner rather than on a regression — the ~10ms it was originally written
+against is not reproducible here on any version of the code.
+
+Three rules the sketch above did not settle:
+
+- **A trade is given once, at birth, and held for life.** Reallocation was
+  free and instant at first, which meant no decision was permanent and no
+  mistake cost anything — the interaction was pressing −/+ until the numbers
+  looked right. Now the choice arrives at the rate of births, which is the rate
+  of food surplus, so gardeners buy agency as well as food.
+- **A newborn waits** rather than taking a default trade, so a birth during an
+  absence keeps the choice instead of spending it. The queue needs no cap: the
+  untrained eat, and a birth already requires the gardens to cover the larger
+  pā.
+- **Deaths spend the untrained first, then the largest of the other trades,
+  and come for the gardeners last.** This is what keeps permanence survivable —
+  a famine that took the gardeners would leave a pā that can never gather again.
+
+Migration carries a pre-jobs save across: stores written as `{ amount,
+perSecond }` are read for their amount, `faith`/`lifetimeFaith` are read into
+`devotion`/`mana`, and a village with no job sheet is put to work on the
+default roster rather than left idle.
+
 ### Step 6: Decrees
 
-- A screen to set the labor split, breeding policy, muster share, and offering
-  share.
+- A screen to set the breeding policy, muster share, and offering share. The
+  labor split is not among them: trades are given at birth and held for life,
+  so there is no split to set. `docs/mechanics.md` records a default-trade
+  decree as a future idea if children waiting turns out to grate.
 - Offerings convert surplus food to Devotion at a poor fixed rate.
-- Muster is stored now and read by the raid step later.
+- Muster is stored now and read by the raid step later. It matters more than
+  it first looked: with trades permanent, mustering is how anyone who is not a
+  toa ever contributes to defense.
 - Decrees persist in the save and apply during offline catch-up.
 
 **Done when:** a decree set before closing the tab is the one in effect on
@@ -284,7 +327,9 @@ night's raid, and the buffer is capped so the save can't grow without bound.
   (earlier warning), and workshops (gathering and weapon tiers) — replacing
   every fixed cap from the phases above.
 - Construction takes villager time and materials rather than completing
-  instantly; builders come out of the labor split.
+  instantly. Decide first where builders come from: a trade of their own, or
+  hands borrowed the way muster borrows them. There is no labor split to take
+  them out of.
 - The three branches presented as one tree, with the kaitiaki branch from step
   10 as its third column.
 

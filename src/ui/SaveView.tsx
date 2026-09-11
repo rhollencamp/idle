@@ -32,10 +32,10 @@ function saveFilename(now: Date): string {
  */
 function describeSave(state: GameState): string {
   const villagers = `${state.population} villager${state.population === 1 ? '' : 's'}`
-  const faith = `${Math.floor(state.lifetimeFaith)} faith earned`
+  const standing = `${Math.floor(state.mana)} mana`
   const saved = new Date(state.lastTick).toLocaleString()
 
-  return `${villagers}, ${faith} — last played ${saved}`
+  return `${villagers}, ${standing} — last played ${saved}`
 }
 
 export function SaveView({ state, onImport, onReset }: SaveViewProps) {

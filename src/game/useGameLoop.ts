@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { createInitialState } from './initialState'
 import { clearSave, loadState, saveState } from './save'
 import { advanceTo } from './tick'
-import type { GameState } from './types'
+import { unassignedCount } from './village'
+import type { GameState, JobKey } from './types'
 
 const TICK_MS = 250
 const AUTOSAVE_MS = 5000
@@ -41,6 +42,24 @@ export function useGameLoop() {
     }
   }, [])
 
+  /**
+   * Gives one untrained villager a trade, for good.
+   *
+   * There is no way back: a villager who has learned a trade keeps it, so
+   * this only ever moves someone out of the untrained pool and never between
+   * two trades. Retraining is a thing the pā may learn to do later; until
+   * then, the composition of the village is the record of every choice made
+   * at every birth. A call with nobody left to train is refused rather than
+   * clamped, so the sheet can never claim villagers that do not exist.
+   */
+  const trainVillager = (job: JobKey) => {
+    setState((prev) => {
+      if (unassignedCount(prev) < 1) return prev
+
+      return { ...prev, jobs: { ...prev.jobs, [job]: prev.jobs[job] + 1 } }
+    })
+  }
+
   const resetGame = () => {
     clearSave()
     const fresh = createInitialState()
@@ -57,5 +76,5 @@ export function useGameLoop() {
     setState(caughtUp)
   }
 
-  return { state, resetGame, importGame }
+  return { state, trainVillager, resetGame, importGame }
 }

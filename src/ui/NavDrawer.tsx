@@ -50,7 +50,7 @@ export function NavDrawer({
             <NavLink
               component="button"
               label="Update available"
-              description="Restart to install"
+              description="Click to restart and install"
               onClick={onUpdate}
             />
           </>

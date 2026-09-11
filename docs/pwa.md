@@ -4,10 +4,19 @@ The app is meant to be installed via "Add to Home Screen," so it has to detect a
 
 ## How it works
 
-- `vite.config.ts` configures `VitePWA({ registerType: 'autoUpdate', ... })`. This mode bakes `skipWaiting`/`clientsClaim` into the generated service worker, so once a new worker is detected it activates itself with no user prompt.
+- `vite.config.ts` configures `VitePWA({ registerType: 'prompt', ... })`. In this mode a new service worker installs and then _waits_: it does not call `skipWaiting`, so the running page keeps its current version until the player asks for the new one. An idle game is left open for long stretches, and an automatic reload would interrupt a session mid-play.
 - `src/pwaUpdate.ts` is what actually registers the service worker (via the `virtual:pwa-register` module), and `src/main.tsx` calls it on startup. Without that call the service worker never registers at all — the `vite-plugin-pwa` config alone does nothing.
 - Because opening a home-screen PWA often resumes an already-loaded page rather than doing a fresh network load, `pwaUpdate.ts` also forces an explicit `registration.update()` check on every `visibilitychange` to `'visible'` — i.e. whenever the app is foregrounded, not just on first load.
 - `src/vite-env.d.ts` carries the triple-slash reference (`vite-plugin-pwa/client`) that lets TypeScript resolve the `virtual:pwa-register` module.
+
+## Prompting the player
+
+Registration happens once at startup, before React mounts, so the "a new version is waiting" flag lives outside React: `pwaUpdate.ts` keeps the flag and a listener set, and `usePwaUpdate.ts` reads it through `useSyncExternalStore`. `App` subscribes and passes the result to two places:
+
+- `AppHeader` draws a dot on the hamburger (Mantine's `Indicator`) so the menu reads as needing attention. The dot is unlabelled — the wrapper must not be `aria-hidden`, or it would hide the burger button along with it — because the menu item it points at carries the wording.
+- `NavDrawer` grows an "Update available" item below the views, present only while an update waits. Choosing it calls `applyPwaUpdate()`, which is the `updateSW(true)` callback returned by `registerSW`: it tells the waiting worker to `skipWaiting` and reloads the page on `controllerchange`, so the reload lands on the new assets rather than racing them.
+
+The game autosaves on `pagehide`, so the reload keeps the player's progress.
 
 ## How the browser decides a worker is "new"
 

@@ -4,21 +4,83 @@
 /* Sun-bleached sand behind white cards. In light mode Mantine points both the
    page and the card background at `white`, so the page has to be moved off it
    here; the dark scheme needs no equivalent because its surfaces come from the
-   `dark` ramp in theme.ts. */
+   `dark` ramp in theme.ts. The page colour still matters with the photographic
+   backdrop in place: it is what shows while the image is still loading, and
+   what the translucent surfaces sit on if the image never arrives. */
 /* Mantine defines its own scheme variables at :root[data-mantine-color-scheme],
    so an override has to match that specificity to win. */
 :root[data-mantine-color-scheme='light'] {
   --mantine-color-body: #f4f8fa;
 
-  /* App-level tokens, for the two surfaces Mantine has no variable for: the
-     header bar and the unfilled part of a resource bar. */
-  --app-header-bg: #eaf1f5;
-  --app-progress-track: #d5e1e8;
+  /* App-level tokens, for the surfaces Mantine has no variable for: the header
+     bar, the unfilled part of a resource bar, and the veil over the backdrop.
+     Cards and the header are deliberately translucent so the photograph reads
+     through them — see .app-backdrop below. */
+  --app-header-bg: rgb(255 255 255 / 0.35);
+  --app-progress-track: rgb(213 225 232 / 0.55);
+  --app-surface-bg: rgb(255 255 255 / 0.35);
+  --app-surface-border: rgb(255 255 255 / 0.4);
+  --app-scrim: rgb(238 245 248 / 0.5);
+  --app-backdrop-filter: none;
 }
 
 :root[data-mantine-color-scheme='dark'] {
-  --app-header-bg: var(--mantine-color-dark-6);
-  --app-progress-track: var(--mantine-color-dark-5);
+  --app-header-bg: rgb(27 38 44 / 0.35);
+  --app-progress-track: rgb(51 69 78 / 0.55);
+  --app-surface-bg: rgb(27 38 44 / 0.35);
+  --app-surface-border: rgb(27 38 44 / 0.5);
+  /* No veil at night: knocking the photograph's own brightness down does the
+     whole job, and a scrim on top only greys it out. */
+  --app-scrim: transparent;
+  --app-backdrop-filter: brightness(0.43);
+}
+
+/* The photograph: a fixed element rather than `background-attachment: fixed`,
+   which rubber-bands against iOS Safari's elastic scroll. It is a sibling of
+   the scrolling content, so the tide stays put while the cards move over it.
+
+   The asset lives in src/assets rather than public so Vite hashes it and
+   applies `base` itself — the subpath stays pinned in one place. The asset is
+   pre-treated (desaturated, lifted, flattened) at build time, so
+   the light scheme needs no filter at all and the flatter image compresses
+   better; only the dark scheme still pays for one. */
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  background: url('../assets/backdrop-sand.jpg') center / cover no-repeat;
+  filter: var(--app-backdrop-filter);
+}
+
+/* The AVIF is a third of the JPEG, but the upgrade has to go behind a feature
+   query: state both in one rule and the minifier collapses them to the
+   image-set alone, which leaves Safari 16 — no unprefixed `type()` support —
+   with no backdrop at all rather than the JPEG. */
+@supports (
+  background-image: image-set(
+      url('../assets/backdrop-sand.avif') type('image/avif')
+    )
+) {
+  .app-backdrop {
+    background-image: image-set(
+      url('../assets/backdrop-sand.avif') type('image/avif'),
+      url('../assets/backdrop-sand.jpg') type('image/jpeg')
+    );
+  }
+}
+
+.app-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--app-scrim);
+}
+
+/* The backdrop is positioned and comes first, so its siblings have to be
+   positioned too or they paint underneath it. */
+.app-header,
+.app-main,
+.app-safe-bottom {
+  position: relative;
 }
 
 /* The viewport unit that accounts for mobile browser chrome, which matters for
@@ -36,7 +98,8 @@
 .app-header {
   padding-top: env(safe-area-inset-top);
   background-color: var(--app-header-bg);
-  border-bottom: 1px solid var(--mantine-color-default-border);
+  backdrop-filter: blur(3px);
+  border-bottom: 1px solid var(--app-surface-border);
 }
 
 /* The home-indicator gutter on an installed iOS PWA. A bare spacer rather

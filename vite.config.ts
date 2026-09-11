@@ -41,7 +41,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // The backdrop photograph is precached as AVIF only; the JPEG beside
+        // it is a fallback for browsers that cannot decode AVIF, and doubling
+        // the install cost to cover them offline is not worth it.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,avif}'],
       },
     }),
   ],

@@ -75,16 +75,27 @@ export function ReturnSummary({
       // overlay only has to hold the dialog off the photograph, not dim a
       // screen full of cards.
       overlayProps={{ backgroundOpacity: 0.2 }}
+      // A short viewport — a phone on its side, mostly — leaves the dialog at
+      // its cap with more report than room. Laying the content out as a column
+      // is what lets the figures take the scroll on their own, below.
+      styles={{
+        content: { display: 'flex', flexDirection: 'column' },
+        body: { display: 'flex', flexDirection: 'column', minHeight: 0 },
+      }}
     >
       {summary && (
-        <Stack gap="sm">
+        <Stack gap="sm" style={{ minHeight: 0 }}>
           <Text size="sm" c="dimmed">
             You were gone about {formatDuration(summary.awayMs)}.
           </Text>
 
           <Divider />
 
-          <Stack gap={4}>
+          {/* The one part that scrolls. The duration above it, the closing
+              line and the button stay put, so the way out of the report is on
+              screen however little of it fits — it is the way back to the pā,
+              not a detail to go hunting for. */}
+          <Stack gap={4} style={{ minHeight: 0, overflowY: 'auto' }}>
             {/* Births and deaths get a line each even at zero: "none died" is
                 news on a night that buried four, and a line that appears only
                 sometimes makes the two nights harder to tell apart. */}

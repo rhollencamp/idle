@@ -1,5 +1,13 @@
-import { Anchor, Divider, Drawer, Group, NavLink, Stack } from '@mantine/core'
-import { COMMIT_URL, GIT_SHA, REPO_URL } from '../buildInfo'
+import {
+  Anchor,
+  Divider,
+  Drawer,
+  Group,
+  NavLink,
+  Stack,
+  Text,
+} from '@mantine/core'
+import { GIT_SHA, REPO_URL } from '../buildInfo'
 import { GitHubIcon } from './GitHubIcon'
 import { VIEWS, type View } from './navigation'
 
@@ -67,41 +75,25 @@ export function NavDrawer({
         )}
       </Stack>
 
-      <Group
-        mt="auto"
-        p="md"
-        gap="xs"
-        wrap="nowrap"
-        justify="space-between"
-        c="dimmed"
-      >
+      <Group mt="auto" p="md" gap="xs" wrap="nowrap" c="dimmed">
         <Anchor
           href={REPO_URL}
           target="_blank"
           rel="noreferrer"
-          size="sm"
-          underline="never"
+          aria-label="Source on GitHub"
+          title="Source on GitHub"
+          display="flex"
         >
-          <Group gap={6} wrap="nowrap">
-            <GitHubIcon />
-            Source
-          </Group>
+          <GitHubIcon />
         </Anchor>
 
         {/* The build's commit, so a bug report can name what was running. It
             is the only version this app has — `package.json`'s is a
-            placeholder. */}
-        <Anchor
-          href={COMMIT_URL}
-          target="_blank"
-          rel="noreferrer"
-          size="xs"
-          c="dimmed"
-          ff="monospace"
-          title="The commit this build came from"
-        >
+            placeholder. Plain text: it identifies the build, it is not
+            somewhere to go. */}
+        <Text size="xs" ff="monospace" title="The commit this build came from">
           {GIT_SHA}
-        </Anchor>
+        </Text>
       </Group>
     </Drawer>
   )

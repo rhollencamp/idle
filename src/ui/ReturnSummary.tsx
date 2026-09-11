@@ -1,5 +1,4 @@
 import { Button, Divider, Group, Modal, Stack, Text } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
 import { formatDuration } from '../game/summary'
 import type { AwaySummary } from '../game/summary'
 import type { ResourceKey } from '../game/types'
@@ -58,16 +57,20 @@ export function ReturnSummary({
   summary: AwaySummary | null
   onDismiss: () => void
 }) {
-  const fullScreen = useMediaQuery('(max-width: 36em)')
-
   return (
     <Modal
       opened={summary !== null}
       onClose={onDismiss}
       title="While you were away"
       centered
-      fullScreen={fullScreen}
       withCloseButton={false}
+      // Never full-bleed, however small the screen: the report is short, and
+      // the margin is what lets the shore show around it. A single offset
+      // covers both edges, so each takes the larger of the two insets — on a
+      // notched phone that keeps the dialog clear of the status bar and the
+      // home indicator alike, and on everything else it is the plain default.
+      yOffset="max(5dvh, env(safe-area-inset-top), env(safe-area-inset-bottom))"
+      xOffset="max(5vw, env(safe-area-inset-left), env(safe-area-inset-right))"
       // The pā is hidden behind this (`App` renders the report alone), so the
       // overlay only has to hold the dialog off the photograph, not dim a
       // screen full of cards.

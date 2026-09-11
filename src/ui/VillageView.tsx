@@ -93,10 +93,6 @@ export function VillageView({
 
   return (
     <Stack gap="md">
-      <Text size="sm" c="dimmed" ta="center">
-        The sea is taking back what it lost. Your pā stands in its way.
-      </Text>
-
       <Card withBorder padding={0}>
         <Text fw={600} p="sm">
           Devotion

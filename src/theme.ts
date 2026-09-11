@@ -58,6 +58,30 @@ export const theme = createTheme({
   headings: { fontWeight: '500' },
 
   components: {
+    // Cards float on the photographic backdrop rather than hiding it: a thin
+    // wash of the surface colour, blurred just enough to keep the sand grain
+    // from reading through the dimmed captions. The colours themselves are
+    // per-scheme tokens in styles/app.css, beside the backdrop they sit on.
+    Card: {
+      styles: {
+        root: {
+          backgroundColor: 'var(--app-surface-bg)',
+          backdropFilter: 'blur(3px)',
+          borderColor: 'var(--app-surface-border)',
+        },
+      },
+    },
+    // The one control that sits on a card. Mantine's `default` variant paints
+    // it a solid surface colour, which reads as a chip of the old opaque UI.
+    ActionIcon: {
+      styles: {
+        root: {
+          '--ai-bg': 'var(--app-surface-bg)',
+          '--ai-bd': '1px solid var(--app-surface-border)',
+          '--ai-hover': 'var(--app-surface-border)',
+        },
+      },
+    },
     // Resource bars are a thin accent, not a focal point: Mantine's default
     // `md` is already the 0.5rem the design calls for, but its track reads as
     // a light grey band that fights the island palette in both schemes.

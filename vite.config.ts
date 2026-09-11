@@ -41,7 +41,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // `avif` is here for the backdrop photograph, which has to be
+        // precached or the app loses its background offline.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,avif}'],
       },
     }),
   ],

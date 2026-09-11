@@ -23,6 +23,10 @@ function App() {
   return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
       <div className="app-shell">
+        {/* A photograph of wet sand, fixed behind the scrolling cards. Purely
+            decorative, so it is hidden from assistive technology. */}
+        <div className="app-backdrop" aria-hidden="true" />
+
         <AppHeader
           title={viewTitle(view)}
           menuOpened={menuOpened}
@@ -36,7 +40,14 @@ function App() {
           onClose={() => setMenuOpened(false)}
         />
 
-        <Container component="main" size="sm" py="lg" flex={1} w="100%">
+        <Container
+          component="main"
+          className="app-main"
+          size="sm"
+          py="lg"
+          flex={1}
+          w="100%"
+        >
           {view === 'village' && (
             <VillageView state={state} onTrain={trainVillager} />
           )}

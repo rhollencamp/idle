@@ -41,9 +41,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // The backdrop photograph is precached as AVIF only; the JPEG beside
-        // it is a fallback for browsers that cannot decode AVIF, and doubling
-        // the install cost to cover them offline is not worth it.
+        // `avif` is here for the backdrop photograph, which has to be
+        // precached or the app loses its background offline.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,avif}'],
       },
     }),

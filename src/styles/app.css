@@ -16,11 +16,14 @@
      bar, the unfilled part of a resource bar, and the veil over the backdrop.
      Cards and the header are deliberately translucent so the photograph reads
      through them — see .app-backdrop below. */
-  --app-header-bg: rgb(255 255 255 / 0.35);
-  --app-progress-track: rgb(213 225 232 / 0.55);
-  --app-surface-bg: rgb(255 255 255 / 0.35);
-  --app-surface-border: rgb(255 255 255 / 0.4);
-  --app-scrim: rgb(238 245 248 / 0.5);
+  --app-header-bg: rgb(255 255 255 / 0.46);
+  --app-progress-track: rgb(213 225 232 / 0.6);
+  --app-surface-bg: rgb(255 255 255 / 0.46);
+  --app-surface-border: rgb(255 255 255 / 0.5);
+  /* Heavier than it looks it needs to be: daylight sand sits at much the same
+     lightness as the dimmed captions over it, so the veil is what separates
+     them. The dark scheme has no such problem and takes no scrim. */
+  --app-scrim: rgb(238 245 248 / 0.66);
   --app-backdrop-filter: none;
 }
 
@@ -40,32 +43,19 @@
    the scrolling content, so the tide stays put while the cards move over it.
 
    The asset lives in src/assets rather than public so Vite hashes it and
-   applies `base` itself — the subpath stays pinned in one place. The asset is
-   pre-treated (desaturated, lifted, flattened) at build time, so
-   the light scheme needs no filter at all and the flatter image compresses
-   better; only the dark scheme still pays for one. */
+   applies `base` itself — the subpath stays pinned in one place. It is
+   pre-treated (desaturated, lifted, flattened) at build time, so the light
+   scheme needs no filter at all and the flatter image compresses better; only
+   the dark scheme still pays for one.
+
+   AVIF with no fallback beside it: Safari decodes AVIF from 16.0, which is the
+   same version that sets the floor for everything else here, so a second copy
+   would only serve iOS 15 and older. */
 .app-backdrop {
   position: fixed;
   inset: 0;
-  background: url('../assets/backdrop-sand.jpg') center / cover no-repeat;
+  background: url('../assets/backdrop-sand.avif') center / cover no-repeat;
   filter: var(--app-backdrop-filter);
-}
-
-/* The AVIF is a third of the JPEG, but the upgrade has to go behind a feature
-   query: state both in one rule and the minifier collapses them to the
-   image-set alone, which leaves Safari 16 — no unprefixed `type()` support —
-   with no backdrop at all rather than the JPEG. */
-@supports (
-  background-image: image-set(
-      url('../assets/backdrop-sand.avif') type('image/avif')
-    )
-) {
-  .app-backdrop {
-    background-image: image-set(
-      url('../assets/backdrop-sand.avif') type('image/avif'),
-      url('../assets/backdrop-sand.jpg') type('image/jpeg')
-    );
-  }
 }
 
 .app-backdrop::after {

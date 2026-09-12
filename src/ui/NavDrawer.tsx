@@ -41,9 +41,10 @@ export function NavDrawer({
       // links run full-bleed so their hover state reaches the edges.
       styles={{
         // The drawer is its own surface over the whole screen, so it owes the
-        // notch the same clearance `.app-header` gives it — without this its
-        // title sits under the status bar and the first link takes the blur
-        // iOS lays over anything drawn up there.
+        // unsafe edges the same clearance `.app-header` and `.app-safe-bottom`
+        // give the page. Zero wherever the device reports no inset, which
+        // since the app took iOS's default status bar is the common case —
+        // what is left is the notch in landscape and the home indicator.
         header: {
           paddingInline: 'var(--mantine-spacing-md)',
           paddingTop: 'env(safe-area-inset-top)',

@@ -25,6 +25,10 @@
      them. The dark scheme has no such problem and takes no scrim. */
   --app-scrim: rgb(238 245 248 / 0.66);
   --app-backdrop-filter: none;
+  /* The photograph as it ends up looking: its own average under the scrim
+     above. This is the colour of the page itself — see the `html` rule at the
+     bottom of this file for why the two have to agree. */
+  --app-under-photo: #c4c7c5;
 }
 
 :root[data-mantine-color-scheme='dark'] {
@@ -36,6 +40,8 @@
      whole job, and a scrim on top only greys it out. */
   --app-scrim: transparent;
   --app-backdrop-filter: brightness(0.43);
+  /* The same average with the night filter over it and no scrim. */
+  --app-under-photo: #312f2b;
 }
 
 /* The photograph: a fixed element rather than `background-attachment: fixed`,
@@ -54,17 +60,16 @@
 .app-backdrop {
   position: fixed;
   inset: 0;
-  /* An installed iOS PWA on `black-translucent` draws behind the status bar
-     but reports a viewport that is still short by exactly its height, and
-     anchors the document to the top — so every viewport unit, `lvh` included,
-     falls a status bar short of the screen and leaves the page's own
-     background showing as a bare strip along the bottom. The documented
-     workaround is to add the top inset back, which in that mode is the height
-     of the very bar the document was shifted out from under.
+  /* Taller than the viewport on purpose. A fixed element's `inset: 0` is the
+     viewport as the browser currently reports it, which on iOS can be shorter
+     than the screen — by the retractable chrome, and again by the status bar
+     an installed PWA on `black-translucent` is drawn behind. Spilling the
+     photograph past the bottom costs nothing: it is a `cover` background with
+     no edge worth protecting, and the inset is zero wherever there is no
+     notch to report.
 
-     Spilling the photograph past the bottom costs nothing anywhere else: it
-     is a `cover` background with no edge worth protecting, and the inset is
-     zero on any device without the notch to report. */
+     This is not what paints the bottom of the screen on that last case,
+     though — see the `html` rule below. */
   min-height: calc(100lvh + env(safe-area-inset-top));
   background: url('../assets/backdrop-sand.avif') center / cover no-repeat;
   filter: var(--app-backdrop-filter);
@@ -109,4 +114,29 @@
    against the bottom of the safe area. */
 .app-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* The colour of the page itself, which on an installed iOS PWA is also the
+   colour of the screen beyond the page.
+
+   `black-translucent` leaves a band at the bottom of the screen that no
+   element can reach: it lies outside the layout viewport, so a taller
+   backdrop does not paint it and neither does anything else in the document.
+   What fills it is the canvas — the page's own background — which is why a
+   `--mantine-color-body` of near-white showed up there as a bare white strip
+   under the photograph.
+
+   So the canvas takes the colour the photograph resolves to, and `body` gives
+   up its background rather than propagating one over it. Mantine's variable
+   is left alone deliberately: it still dresses the surfaces that read it,
+   the report dialog among them, and those want to stay light.
+
+   Both declarations are a plain element selector, matching the Mantine rules
+   they override, and this file is imported after Mantine's, so they win. */
+html {
+  background-color: var(--app-under-photo);
+}
+
+body {
+  background-color: transparent;
 }

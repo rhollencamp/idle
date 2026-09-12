@@ -73,12 +73,37 @@
   position: relative;
 }
 
-/* The viewport unit that accounts for mobile browser chrome, which matters for
-   an installed portrait PWA. */
+/* `svh` is the viewport with the browser's retractable chrome shown, so a tab
+   gets a page exactly as tall as what is visible rather than one that
+   rubber-bands under a toolbar that is not there yet. */
 .app-shell {
   display: flex;
   flex-direction: column;
   min-height: 100svh;
+}
+
+/* An installed app has no such chrome, and the dynamic units misreport on its
+   cold start — which is every launch on iOS, where a backgrounded PWA is
+   killed rather than suspended. A shell that opens a status bar short of the
+   screen ends the document there, and the strip below it is the page's own
+   background: the band that showed under the report and on About while the pā,
+   with more cards than fit, overshot the bad height and never did.
+
+   `vh` is the unit that reads correctly from a cold start, so standalone takes
+   it. Not both at once — `max()` of the two would hand a tab the taller
+   figure, which is the rubber-band the rule above exists to avoid. */
+@media (display-mode: standalone) {
+  .app-shell {
+    min-height: 100vh;
+  }
+}
+
+/* iOS's own answer to the same question, set on `<html>` by the inline script
+   in index.html. Belt and braces on purpose: the media query cannot be
+   exercised anywhere but a device, and this is the rule that decides whether
+   the strip comes back. */
+:root[data-standalone] .app-shell {
+  min-height: 100vh;
 }
 
 /* `viewport-fit=cover` in index.html lets the page run into whatever the

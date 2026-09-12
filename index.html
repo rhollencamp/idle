@@ -50,6 +50,17 @@
         }
         apply()
         query.addEventListener('change', apply)
+
+        // Marks the installed app for `app.css`, which gives it a viewport
+        // unit that reads correctly from a cold start. `display-mode:
+        // standalone` is the standard way to ask and does the same job in the
+        // stylesheet; this is iOS's own answer to the same question, kept
+        // beside it because the two disagreeing is the failure that shows up
+        // as a strip along the bottom of the screen — and it takes a device to
+        // see.
+        if (window.navigator.standalone) {
+          document.documentElement.setAttribute('data-standalone', 'true')
+        }
       })()
     </script>
   </head>

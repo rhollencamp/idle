@@ -98,14 +98,6 @@
   }
 }
 
-/* iOS's own answer to the same question, set on `<html>` by the inline script
-   in index.html. Belt and braces on purpose: the media query cannot be
-   exercised anywhere but a device, and this is the rule that decides whether
-   the strip comes back. */
-:root[data-standalone] .app-shell {
-  min-height: 100vh;
-}
-
 /* `viewport-fit=cover` in index.html lets the page run into whatever the
    device does not consider safe — the home indicator, and the notch in
    landscape. The installed app no longer meets the status bar, since it takes

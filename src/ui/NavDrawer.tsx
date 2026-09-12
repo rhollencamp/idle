@@ -40,7 +40,15 @@ export function NavDrawer({
       // The drawer body carries its own padding on the title row only; the
       // links run full-bleed so their hover state reaches the edges.
       styles={{
-        header: { paddingInline: 'var(--mantine-spacing-md)' },
+        // The drawer is its own surface over the whole screen, so it owes the
+        // unsafe edges the same clearance `.app-header` and `.app-safe-bottom`
+        // give the page. Zero wherever the device reports no inset, which
+        // since the app took iOS's default status bar is the common case —
+        // what is left is the notch in landscape and the home indicator.
+        header: {
+          paddingInline: 'var(--mantine-spacing-md)',
+          paddingTop: 'env(safe-area-inset-top)',
+        },
         // Mantine's drawer content is a plain scroll box, so the column that
         // lets the footer sit at the bottom rather than under the last link
         // has to be declared here — on the content, with the body as the part
@@ -75,7 +83,19 @@ export function NavDrawer({
         )}
       </Stack>
 
-      <Group mt="auto" p="md" gap="xs" wrap="nowrap" c="dimmed">
+      {/* The home indicator sits over the bottom of the panel, so the footer
+          clears it the way `.app-safe-bottom` does for the page. */}
+      <Group
+        mt="auto"
+        p="md"
+        gap="xs"
+        wrap="nowrap"
+        c="dimmed"
+        style={{
+          paddingBottom:
+            'calc(var(--mantine-spacing-md) + env(safe-area-inset-bottom))',
+        }}
+      >
         <Anchor
           href={REPO_URL}
           target="_blank"

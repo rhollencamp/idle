@@ -109,6 +109,22 @@
   border-bottom: 1px solid var(--app-surface-border);
 }
 
+/* An installed `black-translucent` app is handed a viewport a status bar
+   shorter than the screen, and the shortfall lands at the bottom: a document
+   that ends inside it leaves that band showing the page canvas rather than
+   anything the layout drew. A screen's worth of content is not enough, then —
+   the document has to run a status bar past that, which is why the pā, with
+   more cards than fit, never showed the band and the shorter screens did.
+
+   Scoped to standalone because that is the only mode iOS shifts the document
+   in. A tab does not need the extra height and would only gain a page that
+   rubber-bands where it used to sit still. */
+@media (display-mode: standalone) {
+  .app-shell {
+    min-height: calc(100svh + env(safe-area-inset-top));
+  }
+}
+
 /* The home-indicator gutter on an installed iOS PWA. A bare spacer rather
    than padding on the main container, so a scrolling page still ends flush
    against the bottom of the safe area. */

@@ -14,9 +14,10 @@
 
   /* App-level tokens, for the surfaces Mantine has no variable for: the header
      bar, the unfilled part of a resource bar, and the veil over the backdrop.
-     Cards and the header are deliberately translucent so the photograph reads
-     through them — see .app-backdrop below. */
-  --app-header-bg: rgb(255 255 255 / 0.46);
+     Cards are deliberately translucent so the photograph reads through them —
+     see .app-backdrop below. The header is the exception, and opaque for a
+     reason of its own — see .app-header. */
+  --app-header-bg: #ffffff;
   --app-progress-track: rgb(213 225 232 / 0.6);
   --app-surface-bg: rgb(255 255 255 / 0.46);
   --app-surface-border: rgb(255 255 255 / 0.5);
@@ -28,7 +29,8 @@
 }
 
 :root[data-mantine-color-scheme='dark'] {
-  --app-header-bg: rgb(27 38 44 / 0.35);
+  /* The card surface from the dark ramp, at full strength — see .app-header. */
+  --app-header-bg: #1b262c;
   --app-progress-track: rgb(51 69 78 / 0.55);
   --app-surface-bg: rgb(27 38 44 / 0.35);
   --app-surface-border: rgb(27 38 44 / 0.5);
@@ -66,8 +68,8 @@
 }
 
 /* The backdrop is positioned and comes first, so its siblings have to be
-   positioned too or they paint underneath it. */
-.app-header,
+   positioned too or they paint underneath it. The header gets its own
+   positioning below. */
 .app-main,
 .app-safe-bottom {
   position: relative;
@@ -98,17 +100,27 @@
   }
 }
 
-/* `viewport-fit=cover` in index.html lets the page run into whatever the
-   device does not consider safe — the home indicator, and the notch in
-   landscape. The installed app no longer meets the status bar, since it takes
-   iOS's default bar rather than being drawn behind a translucent one, so this
-   inset is zero in the common case and only bites where a browser reports
-   one. Pad the bars themselves rather than their inner containers, so their
-   background still spans full-bleed. */
+/* The one surface that is not a wash over the photograph, and sticky rather
+   than in flow, both for the same reason: Safari 26 tints the status bar from
+   whatever fixed or sticky element it finds at the top of the viewport,
+   reading that element's `background-color` and `backdrop-filter`. Given a
+   flat colour it extends that colour upward; given a translucent, blurred one
+   — or nothing but the fixed photograph behind it — it falls back to a glass
+   treatment, and that glass is a blur over the app that fades out some 90pt
+   down the screen, soft enough to read on the burger and on the nav drawer's
+   first row. An opaque sticky header is what the sibling app does, on the same
+   phone and OS, and it gets a flat band instead.
+
+   `viewport-fit=cover` in index.html lets the page run into whatever the
+   device does not consider safe — the notch, and the home indicator. Pad the
+   bar itself rather than its inner container, so the background still spans
+   full-bleed under the status bar. */
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   padding-top: env(safe-area-inset-top);
   background-color: var(--app-header-bg);
-  backdrop-filter: blur(3px);
   border-bottom: 1px solid var(--app-surface-border);
 }
 

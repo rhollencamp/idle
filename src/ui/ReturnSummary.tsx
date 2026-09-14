@@ -71,10 +71,6 @@ export function ReturnSummary({
       // home indicator alike, and on everything else it is the plain default.
       yOffset="max(5dvh, env(safe-area-inset-top), env(safe-area-inset-bottom))"
       xOffset="max(5vw, env(safe-area-inset-left), env(safe-area-inset-right))"
-      // The pā is hidden behind this (`App` renders the report alone), so the
-      // overlay only has to hold the dialog off the photograph, not dim a
-      // screen full of cards.
-      overlayProps={{ backgroundOpacity: 0.2 }}
       // A short viewport — a phone on its side, mostly — leaves the dialog at
       // its cap with more report than room. Laying the content out as a column
       // is what lets the figures take the scroll on their own, below.

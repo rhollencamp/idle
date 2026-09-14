@@ -6,7 +6,7 @@ import {
   resumeFrom,
   summarizeAbsence,
 } from './summary'
-import { advanceTo } from './tick'
+import { MAX_OFFLINE_MS, advanceTo } from './tick'
 import {
   DEVOTION_PER_TOHUNGA,
   FOOD_PER_VILLAGER,
@@ -41,6 +41,7 @@ describe('summarizeAbsence', () => {
     const summary = summarizeAbsence(before, after)!
 
     expect(summary.awayMs).toBe(HOUR)
+    expect(summary.simulatedMs).toBe(HOUR)
     expect(summary.resources.wood).toBeCloseTo(
       3600 * JOB_YIELD.woodcutter!.perSecond,
       5,
@@ -127,6 +128,19 @@ describe('summarizeAbsence', () => {
       (-away / 1000) * FOOD_PER_VILLAGER * before.population,
       5,
     )
+  })
+
+  it('separates a long absence from the part of it the pā lived', () => {
+    const before = makeState()
+    const week = 7 * 24 * HOUR
+    const after = advanceTo(before, START + week)
+
+    const summary = summarizeAbsence(before, after)!
+
+    // The player was gone a week and knows it; the pā only has a day to
+    // report, and the two figures are kept apart rather than reconciled.
+    expect(summary.awayMs).toBe(week)
+    expect(summary.simulatedMs).toBe(MAX_OFFLINE_MS)
   })
 })
 

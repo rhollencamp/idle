@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createRng } from './rng'
-import { advanceTo, MAX_STEPS_PER_ADVANCE, STEP_MS } from './tick'
+import { advanceTo, MAX_OFFLINE_MS, STEP_MS } from './tick'
 import {
   BIRTH_FOOD_COST,
   DEVOTION_PER_TOHUNGA,
@@ -201,51 +201,52 @@ describe('advanceTo determinism', () => {
   })
 })
 
-describe('advanceTo step budget', () => {
-  it('covers a multi-day absence without coarsening', () => {
-    const fourDaysMs = 4 * 24 * 60 * 60 * 1000
+describe('advanceTo offline cap', () => {
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
+
+  it('runs an absence up to the cap at full resolution', () => {
     const state = makeState()
 
-    const next = advanceTo(state, state.lastTick + fourDaysMs)
+    const next = advanceTo(state, state.lastTick + MAX_OFFLINE_MS)
 
-    // Every step is still the base width, so nothing about this span is
-    // resolved more coarsely than it would be watching it happen.
-    expect(next.step).toBe(fourDaysMs / STEP_MS)
-    expect(next.lastTick).toBe(state.lastTick + fourDaysMs)
+    // Every step is the base width, so nothing about this span is resolved
+    // more coarsely than it would be watching it happen.
+    expect(next.step).toBe(MAX_OFFLINE_MS / STEP_MS)
+    expect(next.lastTick).toBe(state.lastTick + MAX_OFFLINE_MS)
   })
 
-  it('coarsens the step instead of running millions of them', () => {
-    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
+  it('stops at the cap instead of running millions of steps', () => {
     const state = makeState()
 
     const startedAt = performance.now()
     const next = advanceTo(state, state.lastTick + thirtyDaysMs)
     const elapsedMs = performance.now() - startedAt
 
-    expect(next.step).toBeLessThanOrEqual(MAX_STEPS_PER_ADVANCE)
+    expect(next.step).toBe(MAX_OFFLINE_MS / STEP_MS)
     // A guard against per-step cost regressing by an order of magnitude, not
-    // a performance target. Measured on a slow container: ~95ms warm, and up
-    // to ~150ms cold or under load. The bound is set well clear of that so a
-    // busy runner never trips it — an actual regression shows up as
+    // a performance target. Measured on a slow container: ~95ms warm for four
+    // days, and the cap is well inside that now. The bound is set clear of it
+    // so a busy runner never trips it — an actual regression shows up as
     // seconds, not as a hundred milliseconds.
     expect(elapsedMs).toBeLessThan(600)
-    // A coarser step still covers the whole absence, so nothing accrues slowly.
+    // A day's worth of gathering, not a month's: the rest never happened.
     expect(next.resources.wood).toBeCloseTo(
-      (WOOD_PER_WOODCUTTER * thirtyDaysMs) / 1000,
+      (WOOD_PER_WOODCUTTER * MAX_OFFLINE_MS) / 1000,
       3,
     )
   })
 
-  it('keeps the clock consistent so a follow-up call has nothing to redo', () => {
-    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
+  it('forfeits the time past the cap rather than leaving it owed', () => {
     const state = makeState()
     const target = state.lastTick + thirtyDaysMs
 
     const next = advanceTo(state, target)
-    // Flooring the coarse step can leave a remainder; it is still owed, never
-    // simulated twice.
-    expect(next.lastTick).toBeLessThanOrEqual(target)
-    expect(advanceTo(next, target).lastTick).toBeLessThanOrEqual(target)
+
+    // The clock jumps the whole way even though only a day was lived. If the
+    // remainder stayed on the books, this call would simulate another day,
+    // and the next another — a throttle rather than a cap.
+    expect(next.lastTick).toBe(target)
+    expect(advanceTo(next, target)).toBe(next)
   })
 })
 
@@ -493,13 +494,16 @@ describe('starvation', () => {
     expect(next.starvation).toBeLessThanOrEqual(1)
   })
 
-  it('runs at the same rate through a coarsened catch-up step', () => {
+  it('resolves a capped absence exactly as the span it actually lived', () => {
     const state = makeFamine()
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
 
-    // Far past the step budget, so every step here is a wide one.
-    const coarse = advanceTo(state, state.lastTick + thirtyDaysMs)
+    const capped = advanceTo(state, state.lastTick + thirtyDaysMs)
+    const lived = advanceTo(state, state.lastTick + MAX_OFFLINE_MS)
 
-    expect(coarse.population).toBe(MIN_POPULATION)
+    // A famine is the nonlinear case, and the cap does not change how it runs
+    // — only how much of it happens. Everything but the clock agrees.
+    expect({ ...capped, lastTick: 0 }).toEqual({ ...lived, lastTick: 0 })
+    expect(capped.population).toBe(MIN_POPULATION)
   })
 })

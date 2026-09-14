@@ -40,9 +40,8 @@ is discarded cleanly rather than crashing, and `migrate` has tests for
 `advanceTo` was closed-form linear. Population, food, and every system after it
 are a coupled feedback loop, so it had to become an integrator.
 
-- Simulate in fixed buckets up to a step budget; coarsen the step when the
-  elapsed time would blow the budget, so a two-week absence resolves in bounded
-  work.
+- Simulate in fixed buckets up to an offline cap; stop there when the elapsed
+  time runs past it, so a two-week absence resolves in bounded work.
 - A seeded PRNG derived from the save (a stored `seed` plus step index), so the
   same absence always resolves identically. No `Math.random` in `src/game/`.
 - Keep `advanceTo(state, now)` as the public signature.
@@ -51,12 +50,24 @@ are a coupled feedback loop, so it had to become an integrator.
 3600 one-second calls all produce the same state; a 30-day absence completes in
 well under a second.
 
-Landed with `STEP_MS = 1000` and `MAX_STEPS_PER_ADVANCE = 345_600` — four days
-at full resolution, with anything longer resolving in wider buckets at the same
-cost. The step is the UI's resolution too unless the
+Landed with `STEP_MS = 1000`. The step is the UI's resolution too unless the
 display interpolates, which it now does (`projection.ts`), leaving `STEP_MS`
-free to be chosen for the model alone. Revisit the budget against measured
-coarse-vs-fine divergence, not against a target absence length.
+free to be chosen for the model alone.
+
+The step budget started as a coarsening rule — four days at full resolution,
+anything longer in wider buckets — and became `MAX_OFFLINE_MS`, a flat cap on
+how much of an absence the pā lives through. Every step is now the same width
+whatever the absence, so there is no coarse-vs-fine divergence to measure and
+nothing resolves differently from how it would watched live; a long absence
+simply stops. The cap is one day to start with, and it is a natural thing to
+raise later from the tech tree — a deeper pātaka, or a blessing that keeps the
+pā longer without you — so expect it to stop being a constant. What it costs
+is that split-independence holds only up to the cap: past it, checking in more
+often genuinely yields more, which is the bargain every offline cap makes.
+
+Because the excess is forfeited rather than deferred, `AwaySummary` carries
+`simulatedMs` alongside `awayMs` and the return dialog says so — a week away
+reports a day of gains and admits it.
 
 ### Step 3: Population, food, and starvation ✅
 

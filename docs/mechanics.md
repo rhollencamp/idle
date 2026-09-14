@@ -39,6 +39,13 @@ while the player is gone?** The resolution we're committing to:
 - **Active play is rewarded, never required.** Petitions and a chief's
   commands during a raid are the active layer. Skipping them costs you upside;
   it never digs a hole you can't climb out of.
+- **An absence is capped.** The pā lives through a day of it and no more,
+  however long you are gone. That bounds what you can come back to in either
+  direction — a month away is not a month of stockpiles, and not a month of
+  losses either — and it makes checking in worth something without making it a
+  demand. The cap is a day to start with and belongs in the tech tree
+  eventually: a deeper pātaka, or a blessing that keeps the pā longer without
+  you, is a good thing to spend on.
 
 The knob under all of it: **a toa is a villager who is not gathering.**
 Everything you spend on defense is growth you didn't buy, and everything you

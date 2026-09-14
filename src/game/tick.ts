@@ -25,20 +25,24 @@ import type { GameState } from './types'
 export const STEP_MS = 1000
 
 /**
- * Ceiling on the steps one `advanceTo` call will run. Past it the step is
- * coarsened, so an absence of any length resolves in bounded work rather than
- * millions of iterations — a year away costs the same as four days.
+ * How much of an absence the pā can account for. Time past it is forfeited,
+ * not deferred.
  *
- * At the base step this covers four days at full resolution, which measures
- * around 10ms today and well under a frame's worth of budget even with the
- * sim several times fatter than it is now. Beyond four days the bucket widens
- * and the result drifts from what the same span watched live would produce,
- * once the loop is nonlinear. That only matters near a threshold — a village
- * at equilibrium resolves the same at any bucket width — so the number to
- * revisit this against is the measured coarse-vs-fine divergence, not the
- * clock.
+ * This is a game rule, not a work budget. Every step is the same width
+ * whatever the absence, so nothing is ever resolved more coarsely than it
+ * would be watching it happen — a long absence simply stops at a day, and the
+ * rest of it never happened. That the cap also bounds the work is a
+ * convenience; the reason to have one is that a returning player should find
+ * a pā they recognise.
+ *
+ * A day is a starting figure. The cap is a natural thing to raise later — a
+ * deeper pātaka, or a blessing that keeps the pā longer without you — so
+ * expect it to become a building or skill-tree effect rather than a constant.
  */
-export const MAX_STEPS_PER_ADVANCE = 345_600
+export const MAX_OFFLINE_MS = 24 * 60 * 60 * 1000
+
+/** The same cap as a step count, which is the form the loop wants. */
+const MAX_OFFLINE_STEPS = Math.floor(MAX_OFFLINE_MS / STEP_MS)
 
 /**
  * Food, births, and starvation — the loop that couples the granary to the
@@ -156,29 +160,33 @@ function draftFrom(state: GameState): GameState {
  * Advances `state` to `now` by simulating whole fixed steps.
  *
  * Only whole steps are simulated and `lastTick` moves by exactly the time
- * consumed, so the result depends on the elapsed time alone and not on how it
- * was divided into calls: one hour in a single call, in sixty calls, or in
- * thirty-six hundred is the same state either way.
+ * consumed, so the result of any span up to `MAX_OFFLINE_MS` depends on the
+ * elapsed time alone and not on how it was divided into calls: one hour in a
+ * single call, in sixty calls, or in thirty-six hundred is the same state
+ * either way.
+ *
+ * Past the cap that no longer holds, and cannot: a week away in one call is a
+ * day of progress, while the same week checked in on daily is seven. That is
+ * the bargain a capped absence makes, and it is the point of capping one.
  */
 export function advanceTo(state: GameState, now: number): GameState {
   const elapsedMs = now - state.lastTick
   if (elapsedMs < STEP_MS) return state
 
-  let stepMs = STEP_MS
-  let steps = Math.floor(elapsedMs / stepMs)
-  if (steps > MAX_STEPS_PER_ADVANCE) {
-    steps = MAX_STEPS_PER_ADVANCE
-    // Floor keeps the covered span inside the elapsed time; whatever rounding
-    // leaves behind is picked up by the next call.
-    stepMs = Math.floor(elapsedMs / steps)
-  }
+  const owed = Math.floor(elapsedMs / STEP_MS)
+  const steps = Math.min(owed, MAX_OFFLINE_STEPS)
 
   const draft = draftFrom(state)
-  const dtSeconds = stepMs / 1000
+  const dtSeconds = STEP_MS / 1000
   for (let i = 0; i < steps; i += 1) {
     simulateStep(draft, dtSeconds)
   }
-  draft.lastTick = state.lastTick + steps * stepMs
+  // Below the cap the leftover sub-step is carried rather than dropped, so no
+  // time is lost. At the cap the clock jumps the whole way instead: the
+  // forfeited span has to leave the books, or the next call would find it
+  // still owed and simulate another day of it, and another — a cap that only
+  // ever slowed the catch-up down rather than bounding it.
+  draft.lastTick = steps < owed ? now : state.lastTick + steps * STEP_MS
 
   return draft
 }

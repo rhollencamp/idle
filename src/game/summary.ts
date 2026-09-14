@@ -1,4 +1,4 @@
-import { advanceTo } from './tick'
+import { advanceTo, STEP_MS } from './tick'
 import type { GameState, ResourceKey } from './types'
 
 /**
@@ -20,7 +20,15 @@ export const MIN_AWAY_MS = 60_000
  * watching.
  */
 export interface AwaySummary {
+  /** How long the player was actually gone. */
   awayMs: number
+  /**
+   * How much of that the pā lived through. Shorter than `awayMs` when the
+   * absence ran past `MAX_OFFLINE_MS`, and the report says so rather than
+   * presenting a day's gains as a week's — a figure the player can check
+   * against their own clock is not one to be quietly wrong about.
+   */
+  simulatedMs: number
   resources: Record<ResourceKey, number>
   /**
    * Devotion *earned*, read off Mana rather than the balance, so a summary
@@ -58,6 +66,9 @@ export function summarizeAbsence(
 
   return {
     awayMs,
+    // Read off the steps actually run rather than off the clock, so the two
+    // figures can only disagree when the sim genuinely skipped time.
+    simulatedMs: (after.step - before.step) * STEP_MS,
     resources: {
       food: after.resources.food - before.resources.food,
       wood: after.resources.wood - before.resources.wood,

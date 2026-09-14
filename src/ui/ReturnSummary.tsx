@@ -1,5 +1,6 @@
 import { Button, Divider, Group, Modal, Stack, Text } from '@mantine/core'
 import { formatDuration } from '../game/summary'
+import { STEP_MS } from '../game/tick'
 import type { AwaySummary } from '../game/summary'
 import type { ResourceKey } from '../game/types'
 
@@ -83,6 +84,11 @@ export function ReturnSummary({
         <Stack gap="sm" style={{ minHeight: 0 }}>
           <Text size="sm" c="dimmed">
             You were gone about {formatDuration(summary.awayMs)}.
+            {/* Only when the sim genuinely stopped short. Below the cap the
+                two figures differ by the carried sub-step at most, which is
+                not news. */}
+            {summary.awayMs - summary.simulatedMs >= STEP_MS &&
+              ` The pā can account for ${formatDuration(summary.simulatedMs)} of it.`}
           </Text>
 
           <Divider />

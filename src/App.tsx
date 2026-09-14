@@ -31,19 +31,15 @@ function App() {
     setMenuOpened(false)
   }
 
-  // The report is read against the photograph alone: the pā it describes is
-  // not on screen behind it. A dialog over the live screen invites reading the
-  // two against each other — and the numbers behind it are already moving on,
-  // which is precisely the comparison that misleads.
+  // The report is read on its own: the pā it describes is not on screen behind
+  // it. A dialog over the live screen invites reading the two against each
+  // other — and the numbers behind it are already moving on, which is
+  // precisely the comparison that misleads.
   const resuming = summary !== null
 
   return (
     <MantineProvider theme={theme} defaultColorScheme="auto">
       <div className="app-shell">
-        {/* A photograph of wet sand, fixed behind the scrolling cards. Purely
-            decorative, so it is hidden from assistive technology. */}
-        <div className="app-backdrop" aria-hidden="true" />
-
         <ReturnSummary summary={summary} onDismiss={dismissSummary} />
 
         {!resuming && (

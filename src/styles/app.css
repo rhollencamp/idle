@@ -1,78 +1,22 @@
 /* Mantine owns the look of the app; this file is only for what a theme object
    cannot express. Keep it small — prefer theme tokens and component props. */
 
-/* Sun-bleached sand behind white cards. In light mode Mantine points both the
-   page and the card background at `white`, so the page has to be moved off it
-   here; the dark scheme needs no equivalent because its surfaces come from the
-   `dark` ramp in theme.ts. The page colour still matters with the photographic
-   backdrop in place: it is what shows while the image is still loading, and
-   what the translucent surfaces sit on if the image never arrives. */
 /* Mantine defines its own scheme variables at :root[data-mantine-color-scheme],
    so an override has to match that specificity to win. */
 :root[data-mantine-color-scheme='light'] {
+  /* Mantine points the page and the card background at the same `white`, and
+     the design wants the cards to lift off the page. The dark scheme needs no
+     equivalent: its surfaces come from the `dark` ramp in theme.ts, which
+     already separates the two. */
   --mantine-color-body: #f4f8fa;
-
-  /* App-level tokens, for the surfaces Mantine has no variable for: the header
-     bar, the unfilled part of a resource bar, and the veil over the backdrop.
-     Cards are deliberately translucent so the photograph reads through them —
-     see .app-backdrop below. The header is the exception, and opaque for a
-     reason of its own — see .app-header. */
   --app-header-bg: #ffffff;
-  --app-progress-track: rgb(213 225 232 / 0.6);
-  --app-surface-bg: rgb(255 255 255 / 0.46);
-  --app-surface-border: rgb(255 255 255 / 0.5);
-  /* Heavier than it looks it needs to be: daylight sand sits at much the same
-     lightness as the dimmed captions over it, so the veil is what separates
-     them. The dark scheme has no such problem and takes no scrim. */
-  --app-scrim: rgb(238 245 248 / 0.66);
-  --app-backdrop-filter: none;
+  --app-progress-track: #d5e1e8;
 }
 
 :root[data-mantine-color-scheme='dark'] {
-  /* The card surface from the dark ramp, at full strength — see .app-header. */
+  /* The card surface and the border tone from the dark ramp in theme.ts. */
   --app-header-bg: #1b262c;
-  --app-progress-track: rgb(51 69 78 / 0.55);
-  --app-surface-bg: rgb(27 38 44 / 0.35);
-  --app-surface-border: rgb(27 38 44 / 0.5);
-  /* No veil at night: knocking the photograph's own brightness down does the
-     whole job, and a scrim on top only greys it out. */
-  --app-scrim: transparent;
-  --app-backdrop-filter: brightness(0.43);
-}
-
-/* The photograph: a fixed element rather than `background-attachment: fixed`,
-   which rubber-bands against iOS Safari's elastic scroll. It is a sibling of
-   the scrolling content, so the tide stays put while the cards move over it.
-
-   The asset lives in src/assets rather than public so Vite hashes it and
-   applies `base` itself — the subpath stays pinned in one place. It is
-   pre-treated (desaturated, lifted, flattened) at build time, so the light
-   scheme needs no filter at all and the flatter image compresses better; only
-   the dark scheme still pays for one.
-
-   AVIF with no fallback beside it: Safari decodes AVIF from 16.0, which is the
-   same version that sets the floor for everything else here, so a second copy
-   would only serve iOS 15 and older. */
-.app-backdrop {
-  position: fixed;
-  inset: 0;
-  background: url('../assets/backdrop-sand.avif') center / cover no-repeat;
-  filter: var(--app-backdrop-filter);
-}
-
-.app-backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--app-scrim);
-}
-
-/* The backdrop is positioned and comes first, so its siblings have to be
-   positioned too or they paint underneath it. The header gets its own
-   positioning below. */
-.app-main,
-.app-safe-bottom {
-  position: relative;
+  --app-progress-track: #33454e;
 }
 
 /* `svh` is the viewport with the browser's retractable chrome shown, so a tab
@@ -100,16 +44,11 @@
   }
 }
 
-/* The one surface that is not a wash over the photograph, and sticky rather
-   than in flow, both for the same reason: Safari 26 tints the status bar from
-   whatever fixed or sticky element it finds at the top of the viewport,
+/* Opaque and sticky, both deliberately: Safari 26 tints the iOS status bar
+   from whatever fixed or sticky element it finds at the top of the viewport,
    reading that element's `background-color` and `backdrop-filter`. Given a
-   flat colour it extends that colour upward; given a translucent, blurred one
-   — or nothing but the fixed photograph behind it — it falls back to a glass
-   treatment, and that glass is a blur over the app that fades out some 90pt
-   down the screen, soft enough to read on the burger and on the nav drawer's
-   first row. An opaque sticky header is what the sibling app does, on the same
-   phone and OS, and it gets a flat band instead.
+   flat colour it extends the colour upward; given a translucent or blurred
+   one it falls back to a glass treatment that blurs the top of the app.
 
    `viewport-fit=cover` in index.html lets the page run into whatever the
    device does not consider safe — the notch, and the home indicator. Pad the
@@ -121,7 +60,7 @@
   z-index: 100;
   padding-top: env(safe-area-inset-top);
   background-color: var(--app-header-bg);
-  border-bottom: 1px solid var(--app-surface-border);
+  border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
 /* The home-indicator gutter on an installed iOS PWA. A bare spacer rather
